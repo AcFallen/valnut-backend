@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: valnut-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: valnut_user
+      POSTGRES_PASSWORD: valnut_password
+      POSTGRES_DB: valnut_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - valnut-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  valnut-network:
+    driver: bridge
