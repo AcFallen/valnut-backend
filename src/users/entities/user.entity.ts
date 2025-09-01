@@ -6,9 +6,15 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToOne,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Profile } from './profile.entity';
+import { UserType } from '../../common/enums';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { UserRole } from '../../roles/entities/user-role.entity';
 
 @Entity('users')
 export class User {
@@ -24,6 +30,17 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({
+    name: 'user_type',
+    type: 'enum',
+    enum: UserType,
+    default: UserType.TENANT_USER,
+  })
+  userType: UserType;
+
+  @Column({ name: 'tenant_id', nullable: true })
+  tenantId?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -42,4 +59,11 @@ export class User {
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
+
+  @ManyToOne(() => Tenant, (tenant) => tenant.users, { nullable: true })
+  @JoinColumn({ name: 'tenant_id' })
+  tenant?: Tenant;
+
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  userRoles: UserRole[];
 }

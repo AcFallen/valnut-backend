@@ -1,12 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { TenantsModule } from './tenants/tenants.module';
+import { MembershipsModule } from './memberships/memberships.module';
+import { RolesModule } from './roles/roles.module';
+import { CoreModule } from './core/core.module';
+import { TenantMiddleware } from './core/middleware/tenant.middleware';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -20,16 +23,20 @@ import databaseConfig from './config/database.config';
       inject: [databaseConfig.KEY],
       useFactory: (dbConfig: any) => dbConfig,
     }),
-    UsersModule,
+    CoreModule,
     AuthModule,
+    UsersModule,
+    TenantsModule,
+    MembershipsModule,
+    RolesModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
+  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .forRoutes('*');
+  }
+}

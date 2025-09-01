@@ -21,7 +21,7 @@ export class Profile {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
-  @Column({ unique: true, length: 255 })
+  @Column({ length: 255 })
   email: string;
 
   @Column({ name: 'phone', nullable: true, length: 20 })
