@@ -23,7 +23,6 @@ import { TenantResponseDto } from './dto/tenant-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantStatus } from '../common/enums';
 import { plainToInstance } from 'class-transformer';
-import { Public } from 'src/auth/decorators/public.decorator';
 import { RequirePermissions } from 'src/core/decorators/require-permissions.decorator';
 import { PERMISSIONS } from 'src/common/constants';
 

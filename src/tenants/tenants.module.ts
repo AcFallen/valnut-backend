@@ -6,10 +6,7 @@ import { Tenant } from './entities/tenant.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Tenant]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Tenant]), AuthModule],
   controllers: [TenantsController],
   providers: [TenantsService],
   exports: [TenantsService],
