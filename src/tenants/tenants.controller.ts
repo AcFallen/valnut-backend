@@ -34,7 +34,8 @@ export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new tenant' })
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
+  @ApiOperation({ summary: 'Create a new tenant (System Admin only)' })
   @ApiResponse({
     status: 201,
     description: 'Tenant created successfully',
@@ -76,7 +77,8 @@ export class TenantsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get tenant by ID' })
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
+  @ApiOperation({ summary: 'Get tenant by ID (System Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'Tenant found',
@@ -89,7 +91,8 @@ export class TenantsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update tenant' })
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
+  @ApiOperation({ summary: 'Update tenant (System Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'Tenant updated successfully',
@@ -106,8 +109,9 @@ export class TenantsController {
   }
 
   @Delete(':id')
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
   @ApiOperation({ summary: 'Delete tenant' })
-  @ApiResponse({ status: 200, description: 'Tenant deleted successfully' })
+  @ApiResponse({ status: 200, description: 'Tenant deleted successfully (System Admin only)' })
   @ApiResponse({ status: 404, description: 'Tenant not found' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.tenantsService.remove(id);
