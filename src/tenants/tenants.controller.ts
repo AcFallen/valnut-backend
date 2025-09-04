@@ -59,10 +59,11 @@ export class TenantsController {
     description: 'List of all tenants with their users and roles',
     type: [TenantWithUsersResponseDto],
   })
-  async findAll(@Query('status') status?: TenantStatus) {
-    const tenants = status
-      ? await this.tenantsService.findByStatus(status)
-      : await this.tenantsService.findAll();
+  async findAll(
+    @Query('status') status?: TenantStatus,
+    @Query('search') search?: string,
+  ) {
+    const tenants = await this.tenantsService.findAllWithFilters(status, search);
 
     return plainToInstance(TenantWithUsersResponseDto, tenants, {
       excludeExtraneousValues: true,

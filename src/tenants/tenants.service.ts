@@ -102,6 +102,31 @@ export class TenantsService {
       .getMany();
   }
 
+  async findAllWithFilters(status?: TenantStatus, search?: string): Promise<Tenant[]> {
+    const queryBuilder = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoinAndSelect('tenant.users', 'user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.userRoles', 'userRole')
+      .leftJoinAndSelect('userRole.role', 'role');
+
+    if (status) {
+      queryBuilder.where('tenant.status = :status', { status });
+    }
+
+    if (search) {
+      const whereClause = status ? 'andWhere' : 'where';
+      queryBuilder[whereClause]('LOWER(tenant.name) LIKE LOWER(:name)', { 
+        name: `%${search}%` 
+      });
+    }
+    
+    return await queryBuilder
+      .orderBy('tenant.createdAt', 'DESC')
+      .addOrderBy('user.createdAt', 'DESC')
+      .getMany();
+  }
+
   async updateStatus(id: string, status: TenantStatus): Promise<Tenant> {
     const tenant = await this.findOne(id);
     tenant.status = status;
