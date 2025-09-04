@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -26,6 +26,7 @@ export class TenantsService {
     private userRoleRepository: Repository<UserRole>,
     private usersService: UsersService,
     private rolesService: RolesService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
@@ -114,46 +115,50 @@ export class TenantsService {
     tenantId: string,
     createOwnerDto: CreateTenantOwnerDto,
   ) {
-    const tenant = await this.findOne(tenantId);
+    return await this.dataSource.transaction(async (manager) => {
+      // Verificar que el tenant existe
+      const tenant = await manager.findOne(Tenant, { where: { id: tenantId } });
+      if (!tenant) {
+        throw new NotFoundException('Tenant not found');
+      }
 
-    const username = createOwnerDto.email;
-    const password = '12345678';
+      const username = createOwnerDto.email;
+      const password = '12345678';
 
-    const createUserDto = {
-      firstName: createOwnerDto.firstName,
-      lastName: createOwnerDto.lastName,
-      email: createOwnerDto.email,
-      username,
-      password,
-      userType: UserType.TENANT_OWNER,
-      tenantId,
-    };
-
-    const owner = await this.usersService.create(createUserDto);
-
-    // Buscar el rol de Nutricionista (tenant admin)
-    let nutricionistaRole = await this.roleRepository.findOne({
-      where: {
-        name: 'Nutricionista',
-        isTenantAdmin: true,
-      },
-    });
-
-    if (nutricionistaRole) {
-      // Asignar el rol de Nutricionista al owner
-      console.log('Asignando rol de Nutricionista al owner del tenant');
-      const userRole = this.userRoleRepository.create({
-        userId: owner.id,
-        roleId: nutricionistaRole.id,
-      });
-      await this.userRoleRepository.save(userRole);
-    } else {
-      console.error(
-        'No se pudo encontrar o crear el rol Nutricionista para el tenant:',
+      const createUserDto = {
+        firstName: createOwnerDto.firstName,
+        lastName: createOwnerDto.lastName,
+        email: createOwnerDto.email,
+        username,
+        password,
+        userType: UserType.TENANT_OWNER,
         tenantId,
-      );
-    }
+      };
 
-    return owner;
+      // Crear el usuario usando el servicio (que maneja sus propias validaciones)
+      const owner = await this.usersService.create(createUserDto);
+
+      // Buscar el rol de Nutricionista (tenant admin)
+      let nutricionistaRole = await manager.findOne(Role, {
+        where: {
+          name: 'Nutricionista',
+          isTenantAdmin: true,
+        },
+      });
+
+      if (nutricionistaRole) {
+        // Asignar el rol de Nutricionista al owner
+
+        const userRole = manager.create(UserRole, {
+          userId: owner.id,
+          roleId: nutricionistaRole.id,
+        });
+        await manager.save(UserRole, userRole);
+      } else {
+        throw new ConflictException('Failed to assign owner role');
+      }
+
+      return owner;
+    });
   }
 }
