@@ -1,16 +1,31 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { TenantStatus } from '../common/enums';
+import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
+import { TenantStatus, UserType } from '../common/enums';
+import { UsersService } from '../users/users.service';
+import { Role } from '../roles/entities/role.entity';
+import { UserRole } from '../roles/entities/user-role.entity';
+import { RolesService } from '../roles/roles.service';
 
 @Injectable()
 export class TenantsService {
   constructor(
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
+    private usersService: UsersService,
+    private rolesService: RolesService,
   ) {}
 
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
@@ -93,5 +108,52 @@ export class TenantsService {
       .andWhere('tenant.expirationDate < :now', { now })
       .andWhere('tenant.status = :status', { status: TenantStatus.ACTIVE })
       .getMany();
+  }
+
+  async createTenantOwner(
+    tenantId: string,
+    createOwnerDto: CreateTenantOwnerDto,
+  ) {
+    const tenant = await this.findOne(tenantId);
+
+    const username = createOwnerDto.email;
+    const password = '12345678';
+
+    const createUserDto = {
+      firstName: createOwnerDto.firstName,
+      lastName: createOwnerDto.lastName,
+      email: createOwnerDto.email,
+      username,
+      password,
+      userType: UserType.TENANT_OWNER,
+      tenantId,
+    };
+
+    const owner = await this.usersService.create(createUserDto);
+
+    // Buscar el rol de Nutricionista (tenant admin)
+    let nutricionistaRole = await this.roleRepository.findOne({
+      where: {
+        name: 'Nutricionista',
+        isTenantAdmin: true,
+      },
+    });
+
+    if (nutricionistaRole) {
+      // Asignar el rol de Nutricionista al owner
+      console.log('Asignando rol de Nutricionista al owner del tenant');
+      const userRole = this.userRoleRepository.create({
+        userId: owner.id,
+        roleId: nutricionistaRole.id,
+      });
+      await this.userRoleRepository.save(userRole);
+    } else {
+      console.error(
+        'No se pudo encontrar o crear el rol Nutricionista para el tenant:',
+        tenantId,
+      );
+    }
+
+    return owner;
   }
 }

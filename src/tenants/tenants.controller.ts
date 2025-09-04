@@ -19,6 +19,7 @@ import {
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
 import { TenantResponseDto } from './dto/tenant-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantStatus } from '../common/enums';
@@ -118,19 +119,46 @@ export class TenantsController {
     return { message: 'Tenant deleted successfully' };
   }
 
-  @Patch(':id/status/:status')
-  @ApiOperation({ summary: 'Update tenant status' })
+  @Post(':id/owner')
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
+  @ApiOperation({ summary: 'Assign owner to tenant (System Admin only)' })
   @ApiResponse({
-    status: 200,
-    description: 'Tenant status updated successfully',
-    type: TenantResponseDto,
+    status: 201,
+    description: 'Owner assigned successfully',
   })
   @ApiResponse({ status: 404, description: 'Tenant not found' })
-  async updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('status') status: TenantStatus,
+  @ApiResponse({ status: 409, description: 'User with email already exists' })
+  async assignOwner(
+    @Param('id', ParseUUIDPipe) tenantId: string,
+    @Body() createOwnerDto: CreateTenantOwnerDto,
   ) {
-    const tenant = await this.tenantsService.updateStatus(id, status);
-    return plainToInstance(TenantResponseDto, tenant);
+    const owner = await this.tenantsService.createTenantOwner(tenantId, createOwnerDto);
+    return {
+      message: 'Owner assigned successfully',
+      owner: {
+        id: owner.id,
+        username: owner.username,
+        email: owner.profile.email,
+        firstName: owner.profile.firstName,
+        lastName: owner.profile.lastName,
+        userType: owner.userType,
+      },
+    };
   }
+
+  // @Patch(':id/status/:status')
+  // @ApiOperation({ summary: 'Update tenant status' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Tenant status updated successfully',
+  //   type: TenantResponseDto,
+  // })
+  // @ApiResponse({ status: 404, description: 'Tenant not found' })
+  // async updateStatus(
+  //   @Param('id', ParseUUIDPipe) id: string,
+  //   @Param('status') status: TenantStatus,
+  // ) {
+  //   const tenant = await this.tenantsService.updateStatus(id, status);
+  //   return plainToInstance(TenantResponseDto, tenant);
+  // }
 }
