@@ -5,16 +5,19 @@ import { TenantsController } from './tenants.controller';
 import { Tenant } from './entities/tenant.entity';
 import { Role } from '../roles/entities/role.entity';
 import { UserRole } from '../roles/entities/user-role.entity';
+import { User } from '../users/entities/user.entity';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { RolesModule } from '../roles/roles.module';
+import { CoreModule } from '../core/core.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tenant, Role, UserRole]),
+    TypeOrmModule.forFeature([Tenant, Role, UserRole, User]),
     AuthModule,
     UsersModule,
     RolesModule,
+    CoreModule,
   ],
   controllers: [TenantsController],
   providers: [TenantsService],

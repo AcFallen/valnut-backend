@@ -22,6 +22,7 @@ import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
 import { TenantResponseDto } from './dto/tenant-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { TenantStatus } from '../common/enums';
 import { plainToInstance } from 'class-transformer';
 import { RequirePermissions } from 'src/core/decorators/require-permissions.decorator';
@@ -30,7 +31,7 @@ import { PERMISSIONS } from 'src/common/constants';
 @ApiTags('tenants')
 @Controller('tenants')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
 

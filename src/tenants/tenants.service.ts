@@ -20,12 +20,7 @@ export class TenantsService {
   constructor(
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
-    @InjectRepository(Role)
-    private roleRepository: Repository<Role>,
-    @InjectRepository(UserRole)
-    private userRoleRepository: Repository<UserRole>,
     private usersService: UsersService,
-    private rolesService: RolesService,
     private dataSource: DataSource,
   ) {}
 
