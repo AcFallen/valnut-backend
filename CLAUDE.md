@@ -38,6 +38,9 @@ pnpm test -- users.service.spec.ts
 
 # Run test in watch mode
 pnpm test:watch -- --testNamePattern="should create user"
+
+# Debug tests
+pnpm run test:debug
 ```
 
 ## Core Architecture
@@ -124,3 +127,15 @@ pnpm test:watch -- --testNamePattern="should create user"
 - Services automatically receive tenant context via `TenantContextService.getTenantId()`
 - SYSTEM_ADMIN operations bypass tenant filtering
 - Use TypeORM query builders for complex tenant-aware queries
+
+## Testing & Database
+
+**Test Environment**:
+- Jest with TypeScript support and coverage reporting
+- Separate e2e test configuration
+- Test environment uses `node` (not `jsdom`)
+
+**Database Seeding**:
+- Run `pnpm run seed` to populate initial data
+- Creates system admin, demo tenant, and sample users for development
+- Safe to run multiple times (idempotent operations)

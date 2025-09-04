@@ -22,6 +22,8 @@ import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
 import { TenantResponseDto } from './dto/tenant-response.dto';
 import { TenantWithUsersResponseDto } from './dto/tenant-with-users-response.dto';
+import { AssignMembershipDto } from './dto/assign-membership.dto';
+import { TenantMembershipResponseDto } from './dto/tenant-membership-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { TenantStatus } from '../common/enums';
@@ -149,6 +151,26 @@ export class TenantsController {
         userType: owner.userType,
       },
     };
+  }
+
+  @Post(':id/membership')
+  @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
+  @ApiOperation({ summary: 'Manually assign membership to tenant (System Admin only)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Membership assigned successfully',
+    type: TenantMembershipResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Tenant or membership not found' })
+  @ApiResponse({ status: 409, description: 'Invalid dates or assignment failed' })
+  async assignMembership(
+    @Param('id', ParseUUIDPipe) tenantId: string,
+    @Body() assignMembershipDto: AssignMembershipDto,
+  ) {
+    const membership = await this.tenantsService.assignMembership(tenantId, assignMembershipDto);
+    return plainToInstance(TenantMembershipResponseDto, membership, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // @Patch(':id/status/:status')
