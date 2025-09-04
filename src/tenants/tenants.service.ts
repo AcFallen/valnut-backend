@@ -43,9 +43,15 @@ export class TenantsService {
   }
 
   async findAll(): Promise<Tenant[]> {
-    return await this.tenantRepository.find({
-      order: { createdAt: 'DESC' },
-    });
+    return await this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoinAndSelect('tenant.users', 'user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.userRoles', 'userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .orderBy('tenant.createdAt', 'DESC')
+      .addOrderBy('user.createdAt', 'DESC')
+      .getMany();
   }
 
   async findOne(id: string): Promise<Tenant> {
@@ -84,10 +90,16 @@ export class TenantsService {
   }
 
   async findByStatus(status: TenantStatus): Promise<Tenant[]> {
-    return await this.tenantRepository.find({
-      where: { status },
-      order: { createdAt: 'DESC' },
-    });
+    return await this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoinAndSelect('tenant.users', 'user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.userRoles', 'userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .where('tenant.status = :status', { status })
+      .orderBy('tenant.createdAt', 'DESC')
+      .addOrderBy('user.createdAt', 'DESC')
+      .getMany();
   }
 
   async updateStatus(id: string, status: TenantStatus): Promise<Tenant> {

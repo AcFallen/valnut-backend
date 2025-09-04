@@ -21,6 +21,7 @@ import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
 import { TenantResponseDto } from './dto/tenant-response.dto';
+import { TenantWithUsersResponseDto } from './dto/tenant-with-users-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { TenantStatus } from '../common/enums';
@@ -52,18 +53,20 @@ export class TenantsController {
 
   @Get()
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Get all tenants (System Admin only)' })
+  @ApiOperation({ summary: 'Get all tenants with users and roles (System Admin only)' })
   @ApiResponse({
     status: 200,
-    description: 'List of all tenants',
-    type: [TenantResponseDto],
+    description: 'List of all tenants with their users and roles',
+    type: [TenantWithUsersResponseDto],
   })
   async findAll(@Query('status') status?: TenantStatus) {
     const tenants = status
       ? await this.tenantsService.findByStatus(status)
       : await this.tenantsService.findAll();
 
-    return plainToInstance(TenantResponseDto, tenants);
+    return plainToInstance(TenantWithUsersResponseDto, tenants, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('expired')
