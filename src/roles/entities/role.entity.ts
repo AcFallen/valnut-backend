@@ -5,23 +5,17 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
   OneToMany,
   Index,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity';
 import { UserRole } from './user-role.entity';
 import { Permission } from '../../common/constants';
 
 @Entity('roles')
-@Index(['tenantId', 'name'], { unique: true })
+@Index(['name'], { unique: true })
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'tenant_id', nullable: true })
-  tenantId?: string;
 
   @Column({ length: 255 })
   name: string;
@@ -52,10 +46,6 @@ export class Role {
 
   @Column({ name: 'updated_by', nullable: true })
   updatedBy?: string;
-
-  @ManyToOne(() => Tenant, { nullable: true })
-  @JoinColumn({ name: 'tenant_id' })
-  tenant?: Tenant;
 
   @OneToMany(() => UserRole, (userRole) => userRole.role)
   userRoles: UserRole[];

@@ -46,21 +46,28 @@ export class CreateDemoTenantSeed {
 
     const savedTenant = await tenantRepository.save(demoTenant);
 
-    // Create default roles for the tenant
+    // Get or create default roles (roles are now global)
     const tenantRoles: Role[] = [];
 
     for (const [key, roleData] of Object.entries(DEFAULT_ROLES)) {
-      const role = roleRepository.create({
-        tenantId: savedTenant.id,
-        name: roleData.name,
-        description: roleData.description,
-        permissions: [...roleData.permissions],
-        isTenantAdmin: roleData.isTenantAdmin,
-        isSystemAdmin: false,
+      // Check if role already exists
+      let role = await roleRepository.findOne({
+        where: { name: roleData.name },
       });
 
-      const savedRole = await roleRepository.save(role);
-      tenantRoles.push(savedRole);
+      if (!role) {
+        role = roleRepository.create({
+          name: roleData.name,
+          description: roleData.description,
+          permissions: [...roleData.permissions],
+          isTenantAdmin: roleData.isTenantAdmin,
+          isSystemAdmin: false,
+        });
+
+        await roleRepository.save(role);
+      }
+
+      tenantRoles.push(role);
     }
 
     // Create tenant owner user

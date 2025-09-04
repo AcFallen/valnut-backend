@@ -20,64 +20,42 @@ export class RolesService {
   ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const tenantId = this.tenantContextService.getTenantId();
-    
-    // Verificar que no exista un rol con el mismo nombre en el tenant
+    // Verificar que no exista un rol con el mismo nombre
     const existingRole = await this.roleRepository.findOne({
-      where: { 
-        name: createRoleDto.name,
-        tenantId: tenantId || undefined,
-      },
+      where: { name: createRoleDto.name },
     });
 
     if (existingRole) {
-      throw new ConflictException('A role with this name already exists in this tenant');
+      throw new ConflictException('A role with this name already exists');
     }
 
-    const role = this.roleRepository.create({
-      ...createRoleDto,
-      tenantId,
-    });
-
+    const role = this.roleRepository.create(createRoleDto);
     return await this.roleRepository.save(role);
   }
 
   async findAll(): Promise<Role[]> {
-    const tenantId = this.tenantContextService.getTenantId();
-    
     return await this.roleRepository.find({
-      where: [
-        { tenantId }, // Roles del tenant actual
-        { tenantId: undefined }, // Roles del sistema
-      ],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findSystemRoles(): Promise<Role[]> {
     return await this.roleRepository.find({
-      where: { tenantId: undefined },
+      where: { isSystemAdmin: true },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findTenantRoles(tenantId?: string): Promise<Role[]> {
-    const targetTenantId = tenantId || this.tenantContextService.getTenantId();
-    
+  async findTenantRoles(): Promise<Role[]> {
     return await this.roleRepository.find({
-      where: { tenantId: targetTenantId },
+      where: { isTenantAdmin: true },
       order: { createdAt: 'DESC' },
     });
   }
 
   async findOne(id: string): Promise<Role> {
-    const tenantId = this.tenantContextService.getTenantId();
-    
     const role = await this.roleRepository.findOne({
-      where: [
-        { id, tenantId }, // Rol del tenant actual
-        { id, tenantId: undefined }, // Rol del sistema
-      ],
+      where: { id },
     });
 
     if (!role) {
@@ -89,24 +67,15 @@ export class RolesService {
 
   async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
     const role = await this.findOne(id);
-    const tenantId = this.tenantContextService.getTenantId();
-
-    // No permitir modificar roles del sistema desde un tenant
-    if (!role.tenantId && tenantId) {
-      throw new ForbiddenException('Cannot modify system roles from tenant context');
-    }
 
     // Si se está cambiando el nombre, verificar que no exista otro rol con el mismo
     if (updateRoleDto.name && updateRoleDto.name !== role.name) {
       const existingRole = await this.roleRepository.findOne({
-        where: { 
-          name: updateRoleDto.name,
-          tenantId: role.tenantId,
-        },
+        where: { name: updateRoleDto.name },
       });
 
       if (existingRole) {
-        throw new ConflictException('A role with this name already exists in this tenant');
+        throw new ConflictException('A role with this name already exists');
       }
     }
 
@@ -116,12 +85,6 @@ export class RolesService {
 
   async remove(id: string): Promise<void> {
     const role = await this.findOne(id);
-    const tenantId = this.tenantContextService.getTenantId();
-
-    // No permitir eliminar roles del sistema desde un tenant
-    if (!role.tenantId && tenantId) {
-      throw new ForbiddenException('Cannot delete system roles from tenant context');
-    }
 
     // Verificar si el rol está siendo usado
     const userRoleCount = await this.userRoleRepository.count({
@@ -178,33 +141,37 @@ export class RolesService {
     });
   }
 
-  async createDefaultRoles(tenantId: string): Promise<Role[]> {
+  async createDefaultRoles(): Promise<Role[]> {
     const roles: Role[] = [];
 
     for (const [key, roleData] of Object.entries(DEFAULT_ROLES)) {
-      const role = this.roleRepository.create({
-        tenantId,
-        name: roleData.name,
-        description: roleData.description,
-        permissions: [...roleData.permissions],
-        isTenantAdmin: roleData.isTenantAdmin,
-        isSystemAdmin: false,
+      // Check if role already exists
+      let role = await this.roleRepository.findOne({
+        where: { name: roleData.name },
       });
 
-      const savedRole = await this.roleRepository.save(role);
-      roles.push(savedRole);
+      if (!role) {
+        role = this.roleRepository.create({
+          name: roleData.name,
+          description: roleData.description,
+          permissions: [...roleData.permissions],
+          isTenantAdmin: roleData.isTenantAdmin,
+          isSystemAdmin: false,
+        });
+
+        await this.roleRepository.save(role);
+      }
+
+      roles.push(role);
     }
 
     return roles;
   }
 
   async findRolesByPermission(permission: string): Promise<Role[]> {
-    const tenantId = this.tenantContextService.getTenantId();
-    
     return await this.roleRepository
       .createQueryBuilder('role')
       .where('role.permissions @> :permission', { permission: JSON.stringify([permission]) })
-      .andWhere('(role.tenantId = :tenantId OR role.tenantId IS NULL)', { tenantId })
       .getMany();
   }
 }

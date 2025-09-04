@@ -135,11 +135,11 @@ export class RolesController {
     return await this.rolesService.findUserRoles(userId);
   }
 
-  @Post('default/:tenantId')
+  @Post('default')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Create default roles for tenant (System Admin only)' })
+  @ApiOperation({ summary: 'Create default roles (System Admin only)' })
   @ApiResponse({ status: 201, description: 'Default roles created successfully' })
-  async createDefaultRoles(@Param('tenantId', ParseUUIDPipe) tenantId: string) {
-    return await this.rolesService.createDefaultRoles(tenantId);
+  async createDefaultRoles() {
+    return await this.rolesService.createDefaultRoles();
   }
 }

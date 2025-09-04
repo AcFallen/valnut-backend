@@ -83,11 +83,6 @@ export class PermissionsGuard implements CanActivate {
 
     for (const userRole of userRoles) {
       const role = userRole.role;
-      
-      // Skip roles from other tenants (unless it's a system role)
-      if (role.tenantId && role.tenantId !== tenantId) {
-        continue;
-      }
 
       // Add system admin permission if role is system admin
       if (role.isSystemAdmin) {

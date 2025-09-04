@@ -26,10 +26,7 @@ export class CreateSystemAdminSeed {
 
     // Create system admin role
     let systemAdminRole = await roleRepository.findOne({
-      where: { 
-        name: 'System Administrator', 
-        tenantId: undefined as any,
-      },
+      where: { name: 'System Administrator' },
     });
 
     if (!systemAdminRole) {
@@ -39,7 +36,6 @@ export class CreateSystemAdminSeed {
         permissions: [PERMISSIONS.SYSTEM_ADMIN],
         isSystemAdmin: true,
         isTenantAdmin: false,
-        tenantId: undefined,
       });
       await roleRepository.save(systemAdminRole);
     }
