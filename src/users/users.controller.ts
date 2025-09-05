@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -34,5 +34,17 @@ export class UsersController {
     @Body() createTenantUserDto: CreateTenantUserDto,
   ): Promise<User> {
     return this.usersService.createTenantUser(createTenantUserDto);
+  }
+
+  @Get()
+  @RequirePermissions(PERMISSIONS.USER_READ)
+  @ApiOperation({ summary: 'Get all users for the current tenant' })
+  @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully',
+    type: [User],
+  })
+  async getTenantUsers(): Promise<User[]> {
+    return this.usersService.findByTenantWithRelations();
   }
 }

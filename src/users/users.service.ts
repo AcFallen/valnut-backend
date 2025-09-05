@@ -1,9 +1,15 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from './entities/user.entity';
 import { Profile } from './entities/profile.entity';
+import { UserRole } from '../roles/entities/user-role.entity';
+import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
@@ -16,11 +22,17 @@ export class UsersService {
     private userRepository: Repository<User>,
     @InjectRepository(Profile)
     private profileRepository: Repository<Profile>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
     private tenantContextService: TenantContextService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const tenantId = createUserDto.tenantId || this.tenantContextService.getTenantId();
+    const tenantId =
+      createUserDto.tenantId || this.tenantContextService.getTenantId();
 
     // Verificar username único globalmente
     const existingUser = await this.userRepository.findOne({
@@ -32,11 +44,12 @@ export class UsersService {
     }
 
     // Verificar email único dentro del tenant (o globalmente para system admins)
-    const emailCondition = createUserDto.userType === UserType.SYSTEM_ADMIN 
-      ? { email: createUserDto.email }
-      : tenantId 
-        ? { email: createUserDto.email, user: { tenantId } }
-        : { email: createUserDto.email };
+    const emailCondition =
+      createUserDto.userType === UserType.SYSTEM_ADMIN
+        ? { email: createUserDto.email }
+        : tenantId
+          ? { email: createUserDto.email, user: { tenantId } }
+          : { email: createUserDto.email };
 
     const existingProfile = await this.profileRepository.findOne({
       where: emailCondition,
@@ -98,7 +111,7 @@ export class UsersService {
 
   async findByTenant(tenantId?: string): Promise<User[]> {
     const targetTenantId = tenantId || this.tenantContextService.getTenantId();
-    
+
     if (!targetTenantId) {
       throw new NotFoundException('Tenant context required');
     }
@@ -125,9 +138,12 @@ export class UsersService {
     });
   }
 
-  async updateUser(id: string, updateData: Partial<CreateUserDto>): Promise<User> {
+  async updateUser(
+    id: string,
+    updateData: Partial<CreateUserDto>,
+  ): Promise<User> {
     const user = await this.findById(id);
-    
+
     // Si se está actualizando el username, verificar que sea único
     if (updateData.username && updateData.username !== user.username) {
       const existingUser = await this.userRepository.findOne({
@@ -161,15 +177,16 @@ export class UsersService {
       if (profile) {
         if (updateData.firstName) profile.firstName = updateData.firstName;
         if (updateData.lastName) profile.lastName = updateData.lastName;
-        
+
         // Verificar email único si se está actualizando
         if (updateData.email && updateData.email !== profile.email) {
           const tenantId = user.tenantId;
-          const emailCondition = user.userType === UserType.SYSTEM_ADMIN 
-            ? { email: updateData.email }
-            : tenantId 
-              ? { email: updateData.email, user: { tenantId } }
-              : { email: updateData.email };
+          const emailCondition =
+            user.userType === UserType.SYSTEM_ADMIN
+              ? { email: updateData.email }
+              : tenantId
+                ? { email: updateData.email, user: { tenantId } }
+                : { email: updateData.email };
 
           const existingProfile = await this.profileRepository.findOne({
             where: emailCondition,
@@ -202,62 +219,126 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  async validatePassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  async createTenantUser(createTenantUserDto: CreateTenantUserDto): Promise<User> {
+  async createTenantUser(
+    createTenantUserDto: CreateTenantUserDto,
+  ): Promise<User> {
     const tenantId = this.tenantContextService.getTenantId();
-    
+
     if (!tenantId) {
       throw new ConflictException('Tenant context required');
     }
 
-    const username = createTenantUserDto.email;
-    const defaultPassword = '12345678';
+    return await this.dataSource.transaction(async (manager) => {
+      const username = createTenantUserDto.email;
+      const defaultPassword = '12345678';
 
-    // Verificar username único globalmente
-    const existingUser = await this.userRepository.findOne({
-      where: { username },
+      // Verificar username único globalmente
+      const existingUser = await manager.findOne(User, {
+        where: { username },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('Username already exists');
+      }
+
+      // Verificar email único dentro del tenant
+      const existingProfile = await manager.findOne(Profile, {
+        where: {
+          email: createTenantUserDto.email,
+          user: { tenantId },
+        },
+        relations: ['user'],
+      });
+
+      if (existingProfile) {
+        throw new ConflictException('Email already exists in this tenant');
+      }
+
+      // Verificar que el rol existe y pertenece al tenant
+      const role = await manager.findOne(Role, {
+        where: {
+          id: createTenantUserDto.roleId,
+        },
+      });
+
+      if (!role) {
+        throw new NotFoundException(
+          'Role not found or does not belong to this tenant',
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+
+      // Crear usuario
+      const user = manager.create(User, {
+        username,
+        password: hashedPassword,
+        userType: UserType.TENANT_USER,
+        tenantId,
+      });
+
+      const savedUser = await manager.save(User, user);
+
+      // Crear perfil
+      const profile = manager.create(Profile, {
+        firstName: createTenantUserDto.firstName,
+        lastName: createTenantUserDto.lastName,
+        email: createTenantUserDto.email,
+        user: savedUser,
+      });
+
+      await manager.save(Profile, profile);
+
+      // Crear relación usuario-rol
+      const userRole = manager.create(UserRole, {
+        userId: savedUser.id,
+        roleId: createTenantUserDto.roleId,
+      });
+
+      await manager.save(UserRole, userRole);
+
+      // Retornar usuario con relaciones
+      const result = await manager.findOne(User, {
+        where: { id: savedUser.id },
+        relations: ['profile', 'tenant', 'userRoles', 'userRoles.role'],
+      });
+
+      if (!result) {
+        throw new ConflictException('Failed to retrieve created user');
+      }
+
+      return result;
     });
+  }
 
-    if (existingUser) {
-      throw new ConflictException('Username already exists');
+  async findByTenantWithRelations(): Promise<User[]> {
+    const tenantId = this.tenantContextService.getTenantId();
+
+    if (!tenantId) {
+      throw new NotFoundException('Tenant context required');
     }
 
-    // Verificar email único dentro del tenant
-    const existingProfile = await this.profileRepository.findOne({
-      where: { 
-        email: createTenantUserDto.email, 
-        user: { tenantId } 
+    return await this.userRepository.find({
+      select: {
+        id: true,
+        username: true,
+        userType: true,
+        profile: { id: true, firstName: true, lastName: true, email: true },
+        userRoles: {
+          id: true,
+          role: { id: true, name: true },
+        },
       },
-      relations: ['user'],
+      where: { tenantId },
+      relations: ['profile', 'userRoles', 'userRoles.role'],
+      order: { createdAt: 'DESC' },
     });
-
-    if (existingProfile) {
-      throw new ConflictException('Email already exists in this tenant');
-    }
-
-    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-
-    const user = this.userRepository.create({
-      username,
-      password: hashedPassword,
-      userType: UserType.TENANT_USER,
-      tenantId,
-    });
-
-    const savedUser = await this.userRepository.save(user);
-
-    const profile = this.profileRepository.create({
-      firstName: createTenantUserDto.firstName,
-      lastName: createTenantUserDto.lastName,
-      email: createTenantUserDto.email,
-      user: savedUser,
-    });
-
-    await this.profileRepository.save(profile);
-
-    return this.findById(savedUser.id);
   }
 }
