@@ -14,6 +14,7 @@ import { UsersService } from '../users/users.service';
 import { Role } from '../roles/entities/role.entity';
 import { UserRole } from '../roles/entities/user-role.entity';
 import { RolesService } from '../roles/roles.service';
+import { TenantContextService } from '../core/services/tenant-context.service';
 import { AssignMembershipDto } from './dto/assign-membership.dto';
 import { Membership } from '../memberships/entities/membership.entity';
 import { TenantMembership } from '../memberships/entities/tenant-membership.entity';
@@ -31,6 +32,7 @@ export class TenantsService {
     @InjectRepository(PaymentHistory)
     private paymentHistoryRepository: Repository<PaymentHistory>,
     private usersService: UsersService,
+    private tenantContextService: TenantContextService,
     private dataSource: DataSource,
   ) {}
 
@@ -290,5 +292,33 @@ export class TenantsService {
 
       return result;
     });
+  }
+
+  async findByTenantContext(): Promise<Tenant & { currentMembership?: any }> {
+    const tenantId = this.tenantContextService.getTenantId();
+    
+    if (!tenantId) {
+      throw new NotFoundException('Tenant context required');
+    }
+
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId },
+      relations: ['tenantMemberships', 'tenantMemberships.membership'],
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Find the active membership
+    const activeMembership = tenant.tenantMemberships?.find(
+      tm => tm.status === MembershipStatus.ACTIVE
+    );
+
+    // Return tenant with currentMembership property
+    return {
+      ...tenant,
+      currentMembership: activeMembership || null
+    };
   }
 }

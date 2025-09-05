@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { TenantStatus } from '../../common/enums';
 import { User } from '../../users/entities/user.entity';
+import { TenantMembership } from '../../memberships/entities/tenant-membership.entity';
 
 @Entity('tenants')
 export class Tenant {
@@ -57,4 +58,7 @@ export class Tenant {
 
   @OneToMany(() => User, (user) => user.tenant)
   users: User[];
+
+  @OneToMany(() => TenantMembership, (tenantMembership) => tenantMembership.tenant)
+  tenantMemberships: TenantMembership[];
 }

@@ -72,6 +72,20 @@ export class TenantsController {
     });
   }
 
+  @Get('me')
+  @RequirePermissions(PERMISSIONS.TENANT_SETTINGS)
+  @ApiOperation({ summary: 'Get current tenant information' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current tenant information',
+    type: TenantResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Tenant not found' })
+  async getCurrentTenant() {
+    const tenant = await this.tenantsService.findByTenantContext();
+    return plainToInstance(TenantResponseDto, tenant);
+  }
+
   @Get('expired')
   @ApiOperation({ summary: 'Get expired tenants' })
   @ApiResponse({
