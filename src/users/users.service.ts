@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -13,6 +14,7 @@ import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
+import { MembershipsService } from '../memberships/memberships.service';
 import { UserType } from '../common/enums';
 
 @Injectable()
@@ -28,6 +30,7 @@ export class UsersService {
     private roleRepository: Repository<Role>,
     private tenantContextService: TenantContextService,
     private dataSource: DataSource,
+    private membershipsService: MembershipsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -233,6 +236,31 @@ export class UsersService {
 
     if (!tenantId) {
       throw new ConflictException('Tenant context required');
+    }
+
+    // Validar membresía activa del tenant
+    const activeMembership =
+      await this.membershipsService.findActiveTenantMembership(tenantId);
+
+    if (!activeMembership) {
+      throw new BadRequestException(
+        'No se encontró ninguna membresía activa para este inquilino. Suscríbase a un plan de membresía para crear usuarios.',
+      );
+    }
+
+    // Contar usuarios actuales del tenant (excluyendo tenant owner)
+    const currentUserCount = await this.userRepository.count({
+      where: {
+        tenantId,
+        userType: UserType.TENANT_USER,
+      },
+    });
+
+    // Verificar si se excede el límite de usuarios
+    if (currentUserCount >= activeMembership.membership.maxUsers) {
+      throw new BadRequestException(
+        `No se puede crear el usuario. Se alcanzó el límite máximo de usuarios (${activeMembership.membership.maxUsers}) para su plan ${activeMembership.membership.name}. Actualice su membresía para agregar más usuarios.`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {

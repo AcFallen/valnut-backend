@@ -7,11 +7,13 @@ import { Profile } from './entities/profile.entity';
 import { UserRole } from '../roles/entities/user-role.entity';
 import { Role } from '../roles/entities/role.entity';
 import { CoreModule } from '../core/core.module';
+import { MembershipsModule } from '../memberships/memberships.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Profile, UserRole, Role]),
     CoreModule,
+    MembershipsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

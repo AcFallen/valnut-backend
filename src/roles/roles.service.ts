@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
@@ -35,6 +40,12 @@ export class RolesService {
 
   async findAll(): Promise<Role[]> {
     return await this.roleRepository.find({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
+      where: [{ isSystemAdmin: false }],
       order: { createdAt: 'DESC' },
     });
   }
@@ -92,7 +103,9 @@ export class RolesService {
     });
 
     if (userRoleCount > 0) {
-      throw new ConflictException('Cannot delete role that is assigned to users');
+      throw new ConflictException(
+        'Cannot delete role that is assigned to users',
+      );
     }
 
     await this.roleRepository.softDelete(id);
@@ -171,7 +184,9 @@ export class RolesService {
   async findRolesByPermission(permission: string): Promise<Role[]> {
     return await this.roleRepository
       .createQueryBuilder('role')
-      .where('role.permissions @> :permission', { permission: JSON.stringify([permission]) })
+      .where('role.permissions @> :permission', {
+        permission: JSON.stringify([permission]),
+      })
       .getMany();
   }
 }
