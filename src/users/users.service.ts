@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from './entities/user.entity';
 import { Profile } from './entities/profile.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
 import { UserType } from '../common/enums';
 
@@ -203,5 +204,60 @@ export class UsersService {
 
   async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  async createTenantUser(createTenantUserDto: CreateTenantUserDto): Promise<User> {
+    const tenantId = this.tenantContextService.getTenantId();
+    
+    if (!tenantId) {
+      throw new ConflictException('Tenant context required');
+    }
+
+    const username = createTenantUserDto.email;
+    const defaultPassword = '12345678';
+
+    // Verificar username único globalmente
+    const existingUser = await this.userRepository.findOne({
+      where: { username },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Username already exists');
+    }
+
+    // Verificar email único dentro del tenant
+    const existingProfile = await this.profileRepository.findOne({
+      where: { 
+        email: createTenantUserDto.email, 
+        user: { tenantId } 
+      },
+      relations: ['user'],
+    });
+
+    if (existingProfile) {
+      throw new ConflictException('Email already exists in this tenant');
+    }
+
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+
+    const user = this.userRepository.create({
+      username,
+      password: hashedPassword,
+      userType: UserType.TENANT_USER,
+      tenantId,
+    });
+
+    const savedUser = await this.userRepository.save(user);
+
+    const profile = this.profileRepository.create({
+      firstName: createTenantUserDto.firstName,
+      lastName: createTenantUserDto.lastName,
+      email: createTenantUserDto.email,
+      user: savedUser,
+    });
+
+    await this.profileRepository.save(profile);
+
+    return this.findById(savedUser.id);
   }
 }
