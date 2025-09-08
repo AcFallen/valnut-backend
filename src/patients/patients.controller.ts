@@ -6,6 +6,7 @@ import {
   UseGuards,
   Delete,
   Param,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,9 @@ import {
 } from '@nestjs/swagger';
 import { PatientsService } from './patients.service';
 import { Patient } from './entities/patient.entity';
+import { CreatePatientDto } from './dto/create-patient.dto';
+import { QueryPatientsDto } from './dto/query-patients.dto';
+import { PaginatedPatientsDto } from './dto/paginated-patients.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { RequirePermissions } from '../core/decorators/require-permissions.decorator';
@@ -40,20 +44,23 @@ export class PatientsController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async create(@Body() createPatientDto: Partial<Patient>): Promise<Patient> {
+  async create(@Body() createPatientDto: CreatePatientDto): Promise<Patient> {
     return this.patientsService.create(createPatientDto);
   }
 
   @Get()
   @RequirePermissions(PERMISSIONS.PATIENT_READ)
-  @ApiOperation({ summary: 'Get all patients for the current tenant' })
+  @ApiOperation({ 
+    summary: 'Get all patients for the current tenant with filters and pagination',
+    description: 'Retrieve patients with optional filters for firstName, lastName, phone, and search. Supports pagination.'
+  })
   @ApiResponse({
     status: 200,
     description: 'Patients retrieved successfully',
-    type: [Patient],
+    type: PaginatedPatientsDto,
   })
-  async findAll(): Promise<Patient[]> {
-    return this.patientsService.findByTenant();
+  async findAll(@Query() query: QueryPatientsDto): Promise<PaginatedPatientsDto> {
+    return this.patientsService.findByTenant(query);
   }
 
   @Get(':id')

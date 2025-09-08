@@ -4,8 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Like, SelectQueryBuilder } from 'typeorm';
 import { Patient } from './entities/patient.entity';
+import { CreatePatientDto } from './dto/create-patient.dto';
+import { QueryPatientsDto } from './dto/query-patients.dto';
+import { PaginatedPatientsDto } from './dto/paginated-patients.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
 
 @Injectable()
@@ -16,13 +19,13 @@ export class PatientsService {
     private tenantContextService: TenantContextService,
   ) {}
 
-  async create(createPatientData: Partial<Patient>): Promise<Patient> {
+  async create(createPatientDto: CreatePatientDto): Promise<Patient> {
     const tenantId = this.tenantContextService.getTenantId();
 
     // Verificar email único dentro del tenant
     const existingPatient = await this.patientRepository.findOne({
       where: {
-        email: createPatientData.email,
+        email: createPatientDto.email,
         tenantId,
         deletedAt: IsNull(),
       },
@@ -32,10 +35,16 @@ export class PatientsService {
       throw new ConflictException('Email already exists in this tenant');
     }
 
-    const patient = this.patientRepository.create({
-      ...createPatientData,
+    // Convertir dateOfBirth string a Date si está presente
+    const patientData = {
+      ...createPatientDto,
+      dateOfBirth: createPatientDto.dateOfBirth
+        ? new Date(createPatientDto.dateOfBirth)
+        : undefined,
       tenantId,
-    });
+    };
+
+    const patient = this.patientRepository.create(patientData);
 
     return await this.patientRepository.save(patient);
   }
@@ -55,13 +64,68 @@ export class PatientsService {
     return patient;
   }
 
-  async findByTenant(): Promise<Patient[]> {
+  async findByTenant(query?: QueryPatientsDto): Promise<PaginatedPatientsDto> {
     const tenantId = this.tenantContextService.getTenantId();
+    const { firstName, lastName, phone, search, page = 1, limit = 10 } = query || {};
 
-    return await this.patientRepository.find({
-      where: { tenantId, deletedAt: IsNull() },
-      order: { createdAt: 'DESC' },
-    });
+    const queryBuilder: SelectQueryBuilder<Patient> = this.patientRepository
+      .createQueryBuilder('patient')
+      .select([
+        'patient.id',
+        'patient.firstName',
+        'patient.lastName',
+        'patient.email',
+        'patient.phone',
+        'patient.createdAt',
+      ])
+      .where('patient.tenantId = :tenantId', { tenantId })
+      .andWhere('patient.deletedAt IS NULL');
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(patient.firstName ILIKE :search OR patient.lastName ILIKE :search OR patient.phone ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    } else {
+      if (firstName) {
+        queryBuilder.andWhere('patient.firstName ILIKE :firstName', {
+          firstName: `%${firstName}%`,
+        });
+      }
+
+      if (lastName) {
+        queryBuilder.andWhere('patient.lastName ILIKE :lastName', {
+          lastName: `%${lastName}%`,
+        });
+      }
+
+      if (phone) {
+        queryBuilder.andWhere('patient.phone ILIKE :phone', {
+          phone: `%${phone}%`,
+        });
+      }
+    }
+
+    queryBuilder.orderBy('patient.createdAt', 'DESC');
+
+    const offset = (page - 1) * limit;
+    queryBuilder.skip(offset).take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext,
+      hasPrev,
+    };
   }
 
   async softDelete(id: string): Promise<void> {
