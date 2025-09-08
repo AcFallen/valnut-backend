@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, IsNull } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from './entities/user.entity';
 import { Profile } from './entities/profile.entity';
@@ -219,11 +219,12 @@ export class UsersService {
       );
     }
 
-    // Contar usuarios actuales del tenant (excluyendo tenant owner)
+    // Contar usuarios actuales del tenant (excluyendo tenant owner y usuarios eliminados)
     const currentUserCount = await this.userRepository.count({
       where: {
         tenantId,
         userType: UserType.TENANT_USER,
+        deletedAt: IsNull(),
       },
     });
 
