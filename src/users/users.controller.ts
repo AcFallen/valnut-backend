@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Delete, Param } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -46,5 +46,18 @@ export class UsersController {
   })
   async getTenantUsers(): Promise<User[]> {
     return this.usersService.findByTenantWithRelations();
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.USER_DELETE)
+  @ApiOperation({ summary: 'Soft delete a user' })
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 400, description: 'Cannot delete tenant owner' })
+  async deleteUser(@Param('id') id: string): Promise<void> {
+    return this.usersService.softDeleteUser(id);
   }
 }

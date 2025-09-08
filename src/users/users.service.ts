@@ -112,35 +112,6 @@ export class UsersService {
     return user;
   }
 
-  async findByTenant(tenantId?: string): Promise<User[]> {
-    const targetTenantId = tenantId || this.tenantContextService.getTenantId();
-
-    if (!targetTenantId) {
-      throw new NotFoundException('Tenant context required');
-    }
-
-    return await this.userRepository.find({
-      where: { tenantId: targetTenantId },
-      relations: ['profile'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async findSystemAdmins(): Promise<User[]> {
-    return await this.userRepository.find({
-      where: { userType: UserType.SYSTEM_ADMIN },
-      relations: ['profile'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find({
-      relations: ['profile', 'tenant'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-
   async updateUser(
     id: string,
     updateData: Partial<CreateUserDto>,
@@ -244,7 +215,7 @@ export class UsersService {
 
     if (!activeMembership) {
       throw new BadRequestException(
-        'No se encontró ninguna membresía activa para este inquilino. Suscríbase a un plan de membresía para crear usuarios.',
+        'No se encontró ninguna membresía activa para este usuario. Suscríbase a un plan de membresía para crear usuarios.',
       );
     }
 
@@ -368,5 +339,23 @@ export class UsersService {
       relations: ['profile', 'userRoles', 'userRoles.role'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async softDeleteUser(id: string): Promise<void> {
+    const user = await this.findById(id);
+    
+    const tenantId = this.tenantContextService.getTenantId();
+    
+    // Verificar que el usuario pertenece al tenant actual (excepto system admin)
+    if (tenantId && user.tenantId !== tenantId) {
+      throw new NotFoundException('User not found');
+    }
+    
+    // No permitir borrar tenant owners
+    if (user.userType === UserType.TENANT_OWNER) {
+      throw new BadRequestException('Cannot delete tenant owner');
+    }
+    
+    await this.userRepository.softDelete(id);
   }
 }
