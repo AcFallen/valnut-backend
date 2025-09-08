@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { RolesModule } from './roles/roles.module';
+import { PatientsModule } from './patients/patients.module';
 import { CoreModule } from './core/core.module';
 import { TenantMiddleware } from './core/middleware/tenant.middleware';
 import databaseConfig from './config/database.config';
@@ -29,6 +30,7 @@ import databaseConfig from './config/database.config';
     TenantsModule,
     MembershipsModule,
     RolesModule,
+    PatientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
