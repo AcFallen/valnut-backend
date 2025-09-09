@@ -10,6 +10,7 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { QueryPatientsDto } from './dto/query-patients.dto';
 import { PaginatedPatientsDto } from './dto/paginated-patients.dto';
+import { PatientSelectDto } from './dto/patient-select.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
 
 @Injectable()
@@ -151,6 +152,28 @@ export class PatientsService {
 
     await this.patientRepository.update(patient.id, patientData);
     return this.findById(id);
+  }
+
+  async findForSelect(): Promise<PatientSelectDto[]> {
+    const tenantId = this.tenantContextService.getTenantId();
+
+    const patients = await this.patientRepository.find({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+      where: { 
+        tenantId,
+        deletedAt: IsNull(),
+      },
+      order: { firstName: 'ASC' },
+    });
+
+    return patients.map(patient => ({
+      id: patient.id,
+      name: `${patient.firstName} ${patient.lastName}`,
+    }));
   }
 
   async softDelete(id: string): Promise<void> {

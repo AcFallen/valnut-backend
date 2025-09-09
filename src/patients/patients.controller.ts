@@ -22,6 +22,7 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { QueryPatientsDto } from './dto/query-patients.dto';
 import { PaginatedPatientsDto } from './dto/paginated-patients.dto';
+import { PatientSelectDto } from './dto/patient-select.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { RequirePermissions } from '../core/decorators/require-permissions.decorator';
@@ -68,6 +69,18 @@ export class PatientsController {
     @Query() query: QueryPatientsDto,
   ): Promise<PaginatedPatientsDto> {
     return this.patientsService.findByTenant(query);
+  }
+
+  @Get('select')
+  @RequirePermissions(PERMISSIONS.PATIENT_READ)
+  @ApiOperation({ summary: 'Get patients for select dropdown (id and name only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Patients for select retrieved successfully',
+    type: [PatientSelectDto],
+  })
+  async getPatientsForSelect(): Promise<PatientSelectDto[]> {
+    return this.patientsService.findForSelect();
   }
 
   @Get(':id')

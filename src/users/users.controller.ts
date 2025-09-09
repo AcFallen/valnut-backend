@@ -15,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
+import { UserSelectDto } from './dto/user-select.dto';
 import { User } from './entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
@@ -54,6 +55,18 @@ export class UsersController {
   })
   async getTenantUsers(): Promise<User[]> {
     return this.usersService.findByTenantWithRelations();
+  }
+
+  @Get('select')
+  @RequirePermissions(PERMISSIONS.USER_READ)
+  @ApiOperation({ summary: 'Get nutritionists for select dropdown (id and name only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Nutritionists for select retrieved successfully',
+    type: [UserSelectDto],
+  })
+  async getUsersForSelect(): Promise<UserSelectDto[]> {
+    return this.usersService.findForSelect();
   }
 
   @Delete(':id')

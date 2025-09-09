@@ -13,6 +13,7 @@ import { UserRole } from '../roles/entities/user-role.entity';
 import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
+import { UserSelectDto } from './dto/user-select.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
 import { MembershipsService } from '../memberships/memberships.service';
 import { UserType } from '../common/enums';
@@ -340,6 +341,31 @@ export class UsersService {
       relations: ['profile', 'userRoles', 'userRoles.role'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findForSelect(): Promise<UserSelectDto[]> {
+    const tenantId = this.tenantContextService.getTenantId();
+
+    if (!tenantId) {
+      throw new NotFoundException('Tenant context required');
+    }
+
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'profile.firstName', 'profile.lastName'])
+      .leftJoin('user.profile', 'profile')
+      .leftJoin('user.userRoles', 'userRole')
+      .leftJoin('userRole.role', 'role')
+      .where('user.tenantId = :tenantId', { tenantId })
+      .andWhere('user.deletedAt IS NULL')
+      .andWhere('role.name = :roleName', { roleName: 'Nutricionista' })
+      .orderBy('profile.firstName', 'ASC')
+      .getMany();
+
+    return users.map(user => ({
+      id: user.id,
+      name: `${user.profile.firstName} ${user.profile.lastName}`,
+    }));
   }
 
   async softDeleteUser(id: string): Promise<void> {
