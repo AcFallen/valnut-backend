@@ -55,10 +55,40 @@ export class AppointmentsService {
   async findById(id: string): Promise<Appointment> {
     const tenantId = this.tenantContextService.getTenantId();
 
-    const appointment = await this.appointmentRepository.findOne({
-      where: { id, tenantId, deletedAt: IsNull() },
-      relations: ['patient', 'nutritionist', 'tenant'],
-    });
+    const appointment = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .select([
+        'appointment.id',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.consultationType',
+        'appointment.status',
+        'appointment.notes',
+        'appointment.durationMinutes',
+        'appointment.createdAt',
+        'appointment.updatedAt',
+      ])
+      .leftJoin('appointment.patient', 'patient')
+      .addSelect([
+        'patient.id',
+        'patient.firstName',
+        'patient.lastName',
+        'patient.email',
+        'patient.phone',
+        'patient.dateOfBirth',
+        'patient.gender',
+      ])
+      .leftJoin('appointment.nutritionist', 'nutritionist')
+      .leftJoin('nutritionist.profile', 'nutritionistProfile')
+      .addSelect([
+        'nutritionist.id',
+        'nutritionistProfile.firstName',
+        'nutritionistProfile.lastName',
+      ])
+      .where('appointment.id = :id', { id })
+      .andWhere('appointment.tenantId = :tenantId', { tenantId })
+      .andWhere('appointment.deletedAt IS NULL')
+      .getOne();
 
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
@@ -87,8 +117,32 @@ export class AppointmentsService {
     const queryBuilder: SelectQueryBuilder<Appointment> =
       this.appointmentRepository
         .createQueryBuilder('appointment')
-        .leftJoinAndSelect('appointment.patient', 'patient')
-        .leftJoinAndSelect('appointment.nutritionist', 'nutritionist')
+        .select([
+          'appointment.id',
+          'appointment.appointmentDate',
+          'appointment.appointmentTime',
+          'appointment.consultationType',
+          'appointment.status',
+          'appointment.notes',
+          'appointment.durationMinutes',
+          'appointment.createdAt',
+          'appointment.updatedAt',
+        ])
+        .leftJoin('appointment.patient', 'patient')
+        .addSelect([
+          'patient.id',
+          'patient.firstName',
+          'patient.lastName',
+          'patient.email',
+          'patient.phone',
+        ])
+        .leftJoin('appointment.nutritionist', 'nutritionist')
+        .leftJoin('nutritionist.profile', 'nutritionistProfile')
+        .addSelect([
+          'nutritionist.id',
+          'nutritionistProfile.firstName',
+          'nutritionistProfile.lastName',
+        ])
         .where('appointment.tenantId = :tenantId', { tenantId })
         .andWhere('appointment.deletedAt IS NULL');
 
