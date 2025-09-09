@@ -10,6 +10,8 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentsDto } from './dto/query-appointments.dto';
 import { PaginatedAppointmentsDto } from './dto/paginated-appointments.dto';
+import { QueryCalendarDto } from './dto/query-calendar.dto';
+import { CalendarAppointmentDto } from './dto/calendar-appointment.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
 
 @Injectable()
@@ -253,6 +255,90 @@ export class AppointmentsService {
 
     await this.appointmentRepository.update(appointment.id, appointmentData);
     return this.findById(id);
+  }
+
+  async findForCalendar(query?: QueryCalendarDto): Promise<CalendarAppointmentDto[]> {
+    const tenantId = this.tenantContextService.getTenantId();
+    const { start, end, nutritionistId, patientId } = query || {};
+
+    const queryBuilder: SelectQueryBuilder<Appointment> =
+      this.appointmentRepository
+        .createQueryBuilder('appointment')
+        .select([
+          'appointment.id',
+          'appointment.appointmentDate',
+          'appointment.appointmentTime',
+          'appointment.durationMinutes',
+          'appointment.consultationType',
+          'appointment.status',
+          'appointment.notes',
+        ])
+        .leftJoin('appointment.patient', 'patient')
+        .addSelect([
+          'patient.id',
+          'patient.firstName',
+          'patient.lastName',
+          'patient.email',
+        ])
+        .leftJoin('appointment.nutritionist', 'nutritionist')
+        .leftJoin('nutritionist.profile', 'nutritionistProfile')
+        .addSelect([
+          'nutritionist.id',
+          'nutritionistProfile.firstName',
+          'nutritionistProfile.lastName',
+        ])
+        .where('appointment.tenantId = :tenantId', { tenantId })
+        .andWhere('appointment.deletedAt IS NULL');
+
+    if (start && end) {
+      queryBuilder.andWhere(
+        'appointment.appointmentDate BETWEEN :start AND :end',
+        { start, end },
+      );
+    }
+
+    if (nutritionistId) {
+      queryBuilder.andWhere('appointment.nutritionistId = :nutritionistId', {
+        nutritionistId,
+      });
+    }
+
+    if (patientId) {
+      queryBuilder.andWhere('appointment.patientId = :patientId', {
+        patientId,
+      });
+    }
+
+    queryBuilder
+      .orderBy('appointment.appointmentDate', 'ASC')
+      .addOrderBy('appointment.appointmentTime', 'ASC');
+
+    const appointments = await queryBuilder.getMany();
+
+    return appointments.map((appointment) => ({
+      id: appointment.id,
+      appointmentDate: appointment.appointmentDate,
+      appointmentTime: appointment.appointmentTime,
+      durationMinutes: appointment.durationMinutes || 60,
+      consultationType: appointment.consultationType,
+      status: appointment.status,
+      notes: appointment.notes || null,
+      patient: {
+        id: appointment.patient.id,
+        firstName: appointment.patient.firstName,
+        lastName: appointment.patient.lastName,
+        email: appointment.patient.email,
+      },
+      nutritionist: appointment.nutritionist
+        ? {
+            id: appointment.nutritionist.id,
+            profile: {
+              firstName: appointment.nutritionist.profile?.firstName || '',
+              lastName: appointment.nutritionist.profile?.lastName || '',
+            },
+          }
+        : null,
+    }));
   }
 
   async softDelete(id: string): Promise<void> {

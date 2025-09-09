@@ -21,6 +21,8 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentsDto } from './dto/query-appointments.dto';
 import { PaginatedAppointmentsDto } from './dto/paginated-appointments.dto';
+import { QueryCalendarDto } from './dto/query-calendar.dto';
+import { CalendarResponseDto } from './dto/calendar-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { RequirePermissions } from '../core/decorators/require-permissions.decorator';
@@ -69,6 +71,31 @@ export class AppointmentsController {
     @Query() query: QueryAppointmentsDto,
   ): Promise<PaginatedAppointmentsDto> {
     return this.appointmentsService.findByTenant(query);
+  }
+
+  @Get('calendar')
+  // @RequirePermissions(PERMISSIONS.APPOINTMENT_READ)
+  @ApiOperation({
+    summary: 'Get appointments for calendar view',
+    description:
+      'Retrieve appointments formatted for calendar display with optional filters for date range, nutritionist, and patient.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Calendar events retrieved successfully',
+    type: CalendarResponseDto,
+  })
+  async findForCalendar(
+    @Query() query: QueryCalendarDto,
+  ): Promise<CalendarResponseDto> {
+    const data = await this.appointmentsService.findForCalendar(query);
+
+    return {
+      success: true,
+      data,
+      code: 200,
+      message: 'Calendar events retrieved successfully',
+    };
   }
 
   @Get(':id')
