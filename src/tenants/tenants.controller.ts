@@ -55,7 +55,9 @@ export class TenantsController {
 
   @Get()
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Get all tenants with users and roles (System Admin only)' })
+  @ApiOperation({
+    summary: 'Get all tenants with users and roles (System Admin only)',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of all tenants with their users and roles',
@@ -65,7 +67,10 @@ export class TenantsController {
     @Query('status') status?: TenantStatus,
     @Query('search') search?: string,
   ) {
-    const tenants = await this.tenantsService.findAllWithFilters(status, search);
+    const tenants = await this.tenantsService.findAllWithFilters(
+      status,
+      search,
+    );
 
     return plainToInstance(TenantWithUsersResponseDto, tenants, {
       excludeExtraneousValues: true,
@@ -133,7 +138,10 @@ export class TenantsController {
   @Delete(':id')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
   @ApiOperation({ summary: 'Delete tenant' })
-  @ApiResponse({ status: 200, description: 'Tenant deleted successfully (System Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tenant deleted successfully (System Admin only)',
+  })
   @ApiResponse({ status: 404, description: 'Tenant not found' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.tenantsService.remove(id);
@@ -153,7 +161,10 @@ export class TenantsController {
     @Param('id', ParseUUIDPipe) tenantId: string,
     @Body() createOwnerDto: CreateTenantOwnerDto,
   ) {
-    const owner = await this.tenantsService.createTenantOwner(tenantId, createOwnerDto);
+    const owner = await this.tenantsService.createTenantOwner(
+      tenantId,
+      createOwnerDto,
+    );
     return {
       message: 'Owner assigned successfully',
       owner: {
@@ -169,19 +180,27 @@ export class TenantsController {
 
   @Post(':id/membership')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Manually assign membership to tenant (System Admin only)' })
+  @ApiOperation({
+    summary: 'Manually assign membership to tenant (System Admin only)',
+  })
   @ApiResponse({
     status: 201,
     description: 'Membership assigned successfully',
     type: TenantMembershipResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Tenant or membership not found' })
-  @ApiResponse({ status: 409, description: 'Invalid dates or assignment failed' })
+  @ApiResponse({
+    status: 409,
+    description: 'Invalid dates or assignment failed',
+  })
   async assignMembership(
     @Param('id', ParseUUIDPipe) tenantId: string,
     @Body() assignMembershipDto: AssignMembershipDto,
   ) {
-    const membership = await this.tenantsService.assignMembership(tenantId, assignMembershipDto);
+    const membership = await this.tenantsService.assignMembership(
+      tenantId,
+      assignMembershipDto,
+    );
     return plainToInstance(TenantMembershipResponseDto, membership, {
       excludeExtraneousValues: true,
     });

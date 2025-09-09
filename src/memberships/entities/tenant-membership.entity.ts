@@ -64,6 +64,9 @@ export class TenantMembership {
   @JoinColumn({ name: 'membership_id' })
   membership: Membership;
 
-  @OneToMany(() => PaymentHistory, (paymentHistory) => paymentHistory.tenantMembership)
+  @OneToMany(
+    () => PaymentHistory,
+    (paymentHistory) => paymentHistory.tenantMembership,
+  )
   paymentHistory: PaymentHistory[];
 }

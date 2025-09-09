@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Patient } from '../entities/patient.entity';
+import { Appointment } from '../entities/appointment.entity';
 
-export class PaginatedPatientsDto {
+export class PaginatedAppointmentsDto {
   @ApiProperty({
-    description: 'List of patients',
-    type: [Patient],
+    description: 'Array of appointments',
+    type: [Appointment],
   })
-  data: Patient[];
+  data: Appointment[];
 
   @ApiProperty({
-    description: 'Total number of patients',
+    description: 'Total number of appointments',
     example: 25,
   })
   total: number;

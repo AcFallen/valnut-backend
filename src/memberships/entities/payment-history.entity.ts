@@ -56,7 +56,10 @@ export class PaymentHistory {
   @Column({ name: 'updated_by', nullable: true })
   updatedBy?: string;
 
-  @ManyToOne(() => TenantMembership, (tenantMembership) => tenantMembership.paymentHistory)
+  @ManyToOne(
+    () => TenantMembership,
+    (tenantMembership) => tenantMembership.paymentHistory,
+  )
   @JoinColumn({ name: 'tenant_membership_id' })
   tenantMembership: TenantMembership;
 }

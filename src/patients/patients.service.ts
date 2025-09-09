@@ -67,7 +67,14 @@ export class PatientsService {
 
   async findByTenant(query?: QueryPatientsDto): Promise<PaginatedPatientsDto> {
     const tenantId = this.tenantContextService.getTenantId();
-    const { firstName, lastName, phone, search, page = 1, limit = 10 } = query || {};
+    const {
+      firstName,
+      lastName,
+      phone,
+      search,
+      page = 1,
+      limit = 10,
+    } = query || {};
 
     const queryBuilder: SelectQueryBuilder<Patient> = this.patientRepository
       .createQueryBuilder('patient')
@@ -85,7 +92,7 @@ export class PatientsService {
     if (search) {
       queryBuilder.andWhere(
         '(patient.firstName ILIKE :search OR patient.lastName ILIKE :search OR patient.phone ILIKE :search)',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     } else {
       if (firstName) {
@@ -129,9 +136,12 @@ export class PatientsService {
     };
   }
 
-  async update(id: string, updatePatientDto: UpdatePatientDto): Promise<Patient> {
+  async update(
+    id: string,
+    updatePatientDto: UpdatePatientDto,
+  ): Promise<Patient> {
     const patient = await this.findById(id);
-    
+
     const patientData = {
       ...updatePatientDto,
       dateOfBirth: updatePatientDto.dateOfBirth

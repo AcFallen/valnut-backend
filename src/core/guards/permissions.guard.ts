@@ -52,7 +52,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const tenantId = this.tenantContextService.getTenantId();
-    
+
     // For tenant-specific operations, ensure user belongs to the tenant
     if (tenantId && user.tenantId !== tenantId) {
       throw new ForbiddenException('User does not belong to this tenant');
@@ -62,8 +62,8 @@ export class PermissionsGuard implements CanActivate {
     const userPermissions = await this.getUserPermissions(user.id, tenantId);
 
     // Check if user has all required permissions
-    const hasAllPermissions = requiredPermissions.every(permission =>
-      userPermissions.includes(permission)
+    const hasAllPermissions = requiredPermissions.every((permission) =>
+      userPermissions.includes(permission),
     );
 
     if (!hasAllPermissions) {
@@ -73,7 +73,10 @@ export class PermissionsGuard implements CanActivate {
     return true;
   }
 
-  private async getUserPermissions(userId: string, tenantId?: string): Promise<Permission[]> {
+  private async getUserPermissions(
+    userId: string,
+    tenantId?: string,
+  ): Promise<Permission[]> {
     const userRoles = await this.userRoleRepository.find({
       where: { userId },
       relations: ['role'],
@@ -90,7 +93,7 @@ export class PermissionsGuard implements CanActivate {
       }
 
       // Add all role permissions
-      role.permissions.forEach(permission => permissions.add(permission));
+      role.permissions.forEach((permission) => permissions.add(permission));
     }
 
     return Array.from(permissions);

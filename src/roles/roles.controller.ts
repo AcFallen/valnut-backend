@@ -9,7 +9,12 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -95,7 +100,10 @@ export class RolesController {
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
   @ApiResponse({ status: 403, description: 'Cannot delete system roles' })
-  @ApiResponse({ status: 409, description: 'Cannot delete role assigned to users' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete role assigned to users',
+  })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.rolesService.remove(id);
     return { message: 'Role deleted successfully' };
@@ -138,7 +146,10 @@ export class RolesController {
   @Post('default')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
   @ApiOperation({ summary: 'Create default roles (System Admin only)' })
-  @ApiResponse({ status: 201, description: 'Default roles created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Default roles created successfully',
+  })
   async createDefaultRoles() {
     return await this.rolesService.createDefaultRoles();
   }

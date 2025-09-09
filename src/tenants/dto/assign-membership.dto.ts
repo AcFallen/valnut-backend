@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsDateString, IsNumber, IsOptional, IsString, IsEnum, Min } from 'class-validator';
+import {
+  IsUUID,
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsEnum,
+  Min,
+} from 'class-validator';
 import { PaymentStatus } from '../../common/enums';
 
 export class AssignMembershipDto {

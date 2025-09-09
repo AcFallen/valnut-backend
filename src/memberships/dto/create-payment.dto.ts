@@ -1,4 +1,13 @@
-import { IsUUID, IsDateString, IsNumber, IsPositive, IsString, IsOptional, IsEnum, MaxLength } from 'class-validator';
+import {
+  IsUUID,
+  IsDateString,
+  IsNumber,
+  IsPositive,
+  IsString,
+  IsOptional,
+  IsEnum,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { PaymentStatus } from '../../common/enums';
@@ -23,30 +32,30 @@ export class CreatePaymentDto {
   @MaxLength(100)
   paymentMethod: string;
 
-  @ApiProperty({ 
-    description: 'Payment status', 
+  @ApiProperty({
+    description: 'Payment status',
     enum: PaymentStatus,
     required: false,
-    default: PaymentStatus.PENDING 
+    default: PaymentStatus.PENDING,
   })
   @IsOptional()
   @IsEnum(PaymentStatus)
   status?: PaymentStatus;
 
-  @ApiProperty({ 
-    description: 'Transaction reference', 
+  @ApiProperty({
+    description: 'Transaction reference',
     example: 'TXN123456789',
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   transactionReference?: string;
 
-  @ApiProperty({ 
-    description: 'Payment notes', 
+  @ApiProperty({
+    description: 'Payment notes',
     example: 'Monthly subscription payment',
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsString()

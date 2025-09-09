@@ -10,8 +10,8 @@ import { Role } from '../roles/entities/role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Patient, User, UserRole, Role]), 
-    CoreModule
+    TypeOrmModule.forFeature([Patient, User, UserRole, Role]),
+    CoreModule,
   ],
   controllers: [PatientsController],
   providers: [PatientsService],

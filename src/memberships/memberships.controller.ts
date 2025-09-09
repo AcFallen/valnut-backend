@@ -9,7 +9,12 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { MembershipsService } from './memberships.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
@@ -54,8 +59,13 @@ export class MembershipsController {
 
   @Get('expired')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Get expired tenant memberships (System Admin only)' })
-  @ApiResponse({ status: 200, description: 'List of expired tenant memberships' })
+  @ApiOperation({
+    summary: 'Get expired tenant memberships (System Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of expired tenant memberships',
+  })
   async getExpiredMemberships() {
     return await this.membershipsService.getExpiredMemberships();
   }
@@ -78,7 +88,10 @@ export class MembershipsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateMembershipDto: UpdateMembershipDto,
   ) {
-    return await this.membershipsService.updateMembership(id, updateMembershipDto);
+    return await this.membershipsService.updateMembership(
+      id,
+      updateMembershipDto,
+    );
   }
 
   @Delete(':id')
@@ -95,9 +108,16 @@ export class MembershipsController {
   @Post('tenant')
   @RequirePermissions(PERMISSIONS.SYSTEM_ADMIN, PERMISSIONS.TENANT_SETTINGS)
   @ApiOperation({ summary: 'Assign membership to tenant' })
-  @ApiResponse({ status: 201, description: 'Tenant membership created successfully' })
-  async createTenantMembership(@Body() createTenantMembershipDto: CreateTenantMembershipDto) {
-    return await this.membershipsService.createTenantMembership(createTenantMembershipDto);
+  @ApiResponse({
+    status: 201,
+    description: 'Tenant membership created successfully',
+  })
+  async createTenantMembership(
+    @Body() createTenantMembershipDto: CreateTenantMembershipDto,
+  ) {
+    return await this.membershipsService.createTenantMembership(
+      createTenantMembershipDto,
+    );
   }
 
   @Get('tenant/:tenantId')
@@ -105,7 +125,9 @@ export class MembershipsController {
   @RequirePermissions(PERMISSIONS.TENANT_SETTINGS)
   @ApiOperation({ summary: 'Get tenant membership history' })
   @ApiResponse({ status: 200, description: 'Tenant membership history' })
-  async findTenantMemberships(@Param('tenantId', ParseUUIDPipe) tenantId: string) {
+  async findTenantMemberships(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+  ) {
     return await this.membershipsService.findTenantMemberships(tenantId);
   }
 
@@ -114,7 +136,9 @@ export class MembershipsController {
   @RequirePermissions(PERMISSIONS.TENANT_SETTINGS)
   @ApiOperation({ summary: 'Get active tenant membership' })
   @ApiResponse({ status: 200, description: 'Active tenant membership' })
-  async findActiveTenantMembership(@Param('tenantId', ParseUUIDPipe) tenantId: string) {
+  async findActiveTenantMembership(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+  ) {
     return await this.membershipsService.findActiveTenantMembership(tenantId);
   }
 
@@ -132,7 +156,9 @@ export class MembershipsController {
   @RequirePermissions(PERMISSIONS.TENANT_SETTINGS)
   @ApiOperation({ summary: 'Get payments for a tenant membership' })
   @ApiResponse({ status: 200, description: 'Payment history' })
-  async findPayments(@Param('tenantMembershipId', ParseUUIDPipe) tenantMembershipId: string) {
+  async findPayments(
+    @Param('tenantMembershipId', ParseUUIDPipe) tenantMembershipId: string,
+  ) {
     return await this.membershipsService.findPayments(tenantMembershipId);
   }
 }

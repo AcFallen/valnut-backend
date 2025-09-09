@@ -31,7 +31,8 @@ export const DEFAULT_ROLES = {
   },
   RECEPCIONISTA: {
     name: 'Recepcionista',
-    description: 'Funciones operativas limitadas (registrar pacientes, gestionar cola)',
+    description:
+      'Funciones operativas limitadas (registrar pacientes, gestionar cola)',
     permissions: [
       PERMISSIONS.PATIENT_CREATE,
       PERMISSIONS.PATIENT_READ,

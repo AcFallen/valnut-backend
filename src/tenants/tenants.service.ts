@@ -9,7 +9,12 @@ import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateTenantOwnerDto } from './dto/create-tenant-owner.dto';
-import { TenantStatus, UserType, MembershipStatus, PaymentStatus } from '../common/enums';
+import {
+  TenantStatus,
+  UserType,
+  MembershipStatus,
+  PaymentStatus,
+} from '../common/enums';
 import { UsersService } from '../users/users.service';
 import { Role } from '../roles/entities/role.entity';
 import { UserRole } from '../roles/entities/user-role.entity';
@@ -114,7 +119,10 @@ export class TenantsService {
       .getMany();
   }
 
-  async findAllWithFilters(status?: TenantStatus, search?: string): Promise<Tenant[]> {
+  async findAllWithFilters(
+    status?: TenantStatus,
+    search?: string,
+  ): Promise<Tenant[]> {
     const queryBuilder = this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.users', 'user')
@@ -128,11 +136,11 @@ export class TenantsService {
 
     if (search) {
       const whereClause = status ? 'andWhere' : 'where';
-      queryBuilder[whereClause]('LOWER(tenant.name) LIKE LOWER(:name)', { 
-        name: `%${search}%` 
+      queryBuilder[whereClause]('LOWER(tenant.name) LIKE LOWER(:name)', {
+        name: `%${search}%`,
       });
     }
-    
+
     return await queryBuilder
       .orderBy('tenant.createdAt', 'DESC')
       .addOrderBy('user.createdAt', 'DESC')
@@ -183,7 +191,7 @@ export class TenantsService {
       const owner = await this.usersService.create(createUserDto);
 
       // Buscar el rol de Nutricionista (tenant admin)
-      let nutricionistaRole = await manager.findOne(Role, {
+      const nutricionistaRole = await manager.findOne(Role, {
         where: {
           name: 'Nutricionista',
           isTenantAdmin: true,
@@ -228,7 +236,7 @@ export class TenantsService {
       // Verificar que las fechas sean válidas
       const startDate = new Date(assignMembershipDto.startDate);
       const endDate = new Date(assignMembershipDto.endDate);
-      
+
       if (startDate >= endDate) {
         throw new ConflictException('End date must be after start date');
       }
@@ -257,13 +265,16 @@ export class TenantsService {
         amountPaid: assignMembershipDto.amountPaid,
       });
 
-      const savedMembership = await manager.save(TenantMembership, tenantMembership);
+      const savedMembership = await manager.save(
+        TenantMembership,
+        tenantMembership,
+      );
 
       // Crear el registro de pago
       const paymentHistory = manager.create(PaymentHistory, {
         tenantMembershipId: savedMembership.id,
         amount: assignMembershipDto.amountPaid,
-        paymentDate: assignMembershipDto.paymentDate 
+        paymentDate: assignMembershipDto.paymentDate
           ? new Date(assignMembershipDto.paymentDate)
           : new Date(),
         paymentMethod: assignMembershipDto.paymentMethod,
@@ -296,7 +307,7 @@ export class TenantsService {
 
   async findByTenantContext(): Promise<Tenant & { currentMembership?: any }> {
     const tenantId = this.tenantContextService.getTenantId();
-    
+
     if (!tenantId) {
       throw new NotFoundException('Tenant context required');
     }
@@ -312,13 +323,13 @@ export class TenantsService {
 
     // Find the active membership
     const activeMembership = tenant.tenantMemberships?.find(
-      tm => tm.status === MembershipStatus.ACTIVE
+      (tm) => tm.status === MembershipStatus.ACTIVE,
     );
 
     // Return tenant with currentMembership property
     return {
       ...tenant,
-      currentMembership: activeMembership || null
+      currentMembership: activeMembership || null,
     };
   }
 }

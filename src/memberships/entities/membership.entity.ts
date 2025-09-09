@@ -53,6 +53,9 @@ export class Membership {
   @Column({ name: 'updated_by', nullable: true })
   updatedBy?: string;
 
-  @OneToMany(() => TenantMembership, (tenantMembership) => tenantMembership.membership)
+  @OneToMany(
+    () => TenantMembership,
+    (tenantMembership) => tenantMembership.membership,
+  )
   tenantMemberships: TenantMembership[];
 }

@@ -10,29 +10,20 @@ import { TenantGuard } from './guards/tenant.guard';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'fallback_secret_key',
-        signOptions: { 
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h' 
+        secret:
+          configService.get<string>('JWT_SECRET') || 'fallback_secret_key',
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
         },
       }),
       inject: [ConfigService],
     }),
   ],
-  providers: [
-    TenantContextService,
-    TenantGuard,
-    TenantMiddleware,
-  ],
-  exports: [
-    TenantContextService,
-    TenantGuard,
-    JwtModule,
-  ],
+  providers: [TenantContextService, TenantGuard, TenantMiddleware],
+  exports: [TenantContextService, TenantGuard, JwtModule],
 })
 export class CoreModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes('*');
+    consumer.apply(TenantMiddleware).forRoutes('*');
   }
 }

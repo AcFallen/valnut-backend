@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsArray, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Permission } from '../../common/constants';
 
@@ -8,37 +14,37 @@ export class CreateRoleDto {
   @MaxLength(255)
   name: string;
 
-  @ApiProperty({ 
-    description: 'Role description', 
+  @ApiProperty({
+    description: 'Role description',
     example: 'Control total del consultorio y pacientes',
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty({ 
-    description: 'Array of permissions', 
+  @ApiProperty({
+    description: 'Array of permissions',
     example: ['user:create', 'patient:read'],
-    type: [String]
+    type: [String],
   })
   @IsArray()
   @IsString({ each: true })
   permissions: Permission[];
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Whether this role grants system admin privileges',
     required: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
   isSystemAdmin?: boolean;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Whether this role grants tenant admin privileges',
     required: false,
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()

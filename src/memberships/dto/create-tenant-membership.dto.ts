@@ -11,15 +11,24 @@ export class CreateTenantMembershipDto {
   @IsUUID()
   membershipId: string;
 
-  @ApiProperty({ description: 'Membership start date', example: '2024-01-01T00:00:00Z' })
+  @ApiProperty({
+    description: 'Membership start date',
+    example: '2024-01-01T00:00:00Z',
+  })
   @IsDateString()
   startDate: Date;
 
-  @ApiProperty({ description: 'Membership end date', example: '2024-01-31T23:59:59Z' })
+  @ApiProperty({
+    description: 'Membership end date',
+    example: '2024-01-31T23:59:59Z',
+  })
   @IsDateString()
   endDate: Date;
 
-  @ApiProperty({ description: 'Amount paid for this membership', example: 29.99 })
+  @ApiProperty({
+    description: 'Amount paid for this membership',
+    example: 29.99,
+  })
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()

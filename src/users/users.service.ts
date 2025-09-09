@@ -344,19 +344,19 @@ export class UsersService {
 
   async softDeleteUser(id: string): Promise<void> {
     const user = await this.findById(id);
-    
+
     const tenantId = this.tenantContextService.getTenantId();
-    
+
     // Verificar que el usuario pertenece al tenant actual (excepto system admin)
     if (tenantId && user.tenantId !== tenantId) {
       throw new NotFoundException('User not found');
     }
-    
+
     // No permitir borrar tenant owners
     if (user.userType === UserType.TENANT_OWNER) {
       throw new BadRequestException('Cannot delete tenant owner');
     }
-    
+
     await this.userRepository.softDelete(id);
   }
 }

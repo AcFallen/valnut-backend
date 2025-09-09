@@ -22,12 +22,12 @@ export class TenantMiddleware implements NestMiddleware {
   use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const token = this.extractTokenFromHeader(req);
-      
+
       if (token) {
         try {
           const payload = this.jwtService.verify(token);
           req.user = payload;
-          
+
           // Si el usuario tiene tenantId, lo establecemos en el contexto
           if (payload.tenantId) {
             this.tenantContextService.setTenantId(payload.tenantId);
@@ -37,7 +37,7 @@ export class TenantMiddleware implements NestMiddleware {
           console.log('Token verification failed:', error.message);
         }
       }
-      
+
       next();
     } catch (error) {
       // Si hay error, continuamos sin usuario autenticado

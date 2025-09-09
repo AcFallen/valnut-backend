@@ -13,18 +13,18 @@ import { UsersModule } from '../users/users.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'fallback_secret_key',
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h' },
+        secret:
+          configService.get<string>('JWT_SECRET') || 'fallback_secret_key',
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
       }),
       inject: [ConfigService],
     }),
     forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService, 
-    JwtStrategy,
-  ],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

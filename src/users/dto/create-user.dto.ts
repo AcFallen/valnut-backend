@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, IsOptional, IsEnum, IsUUID } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsEnum,
+  IsUUID,
+} from 'class-validator';
 import { UserType } from '../../common/enums';
 
 export class CreateUserDto {
@@ -28,24 +37,27 @@ export class CreateUserDto {
   @MaxLength(100)
   lastName: string;
 
-  @ApiProperty({ example: 'john.doe@example.com', description: 'User email address' })
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: 'User email address',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ 
-    description: 'User type', 
+  @ApiProperty({
+    description: 'User type',
     enum: UserType,
     required: false,
-    default: UserType.TENANT_USER
+    default: UserType.TENANT_USER,
   })
   @IsOptional()
   @IsEnum(UserType)
   userType?: UserType;
 
-  @ApiProperty({ 
-    description: 'Tenant ID (required for tenant users)', 
-    required: false 
+  @ApiProperty({
+    description: 'Tenant ID (required for tenant users)',
+    required: false,
   })
   @IsOptional()
   @IsUUID()

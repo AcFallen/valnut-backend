@@ -14,7 +14,10 @@ export class CreateTenantOwnerDto {
   @MaxLength(100)
   lastName: string;
 
-  @ApiProperty({ example: 'carlos@drlopez.com', description: 'Owner email address' })
+  @ApiProperty({
+    example: 'carlos@drlopez.com',
+    description: 'Owner email address',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;

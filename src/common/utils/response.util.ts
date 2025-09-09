@@ -1,5 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
-import { ApiSuccessResponse, ApiErrorResponse } from '../interfaces/api-response.interface';
+import {
+  ApiSuccessResponse,
+  ApiErrorResponse,
+} from '../interfaces/api-response.interface';
 import { SuccessResponseDto } from '../dto/success-response.dto';
 import { ErrorResponseDto } from '../dto/error-response.dto';
 
@@ -40,11 +43,17 @@ export class ResponseUtil {
     return this.success(null, HttpStatus.NO_CONTENT, message);
   }
 
-  static notFound(message = 'Resource not found', details?: any): ApiErrorResponse {
+  static notFound(
+    message = 'Resource not found',
+    details?: any,
+  ): ApiErrorResponse {
     return this.error(message, HttpStatus.NOT_FOUND, undefined, details);
   }
 
-  static unauthorized(message = 'Unauthorized', details?: any): ApiErrorResponse {
+  static unauthorized(
+    message = 'Unauthorized',
+    details?: any,
+  ): ApiErrorResponse {
     return this.error(message, HttpStatus.UNAUTHORIZED, undefined, details);
   }
 
@@ -52,11 +61,22 @@ export class ResponseUtil {
     return this.error(message, HttpStatus.FORBIDDEN, undefined, details);
   }
 
-  static validation(message = 'Validation failed', details?: any): ApiErrorResponse {
+  static validation(
+    message = 'Validation failed',
+    details?: any,
+  ): ApiErrorResponse {
     return this.error(message, HttpStatus.BAD_REQUEST, undefined, details);
   }
 
-  static internalError(message = 'Internal server error', details?: any): ApiErrorResponse {
-    return this.error(message, HttpStatus.INTERNAL_SERVER_ERROR, undefined, details);
+  static internalError(
+    message = 'Internal server error',
+    details?: any,
+  ): ApiErrorResponse {
+    return this.error(
+      message,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      undefined,
+      details,
+    );
   }
 }

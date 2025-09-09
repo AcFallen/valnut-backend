@@ -69,6 +69,7 @@ pnpm run test:debug
 - `tenants/`: Tenant management (SYSTEM_ADMIN only)
 - `roles/`: RBAC system with tenant-scoped and system roles
 - `memberships/`: Subscription plans and payment tracking
+- `patients/`: Patient management with CRUD operations and tenant filtering
 
 ## Key Entities & Relationships
 
@@ -139,3 +140,9 @@ pnpm run test:debug
 - Run `pnpm run seed` to populate initial data
 - Creates system admin, demo tenant, and sample users for development
 - Safe to run multiple times (idempotent operations)
+
+## Current Development Status
+
+**Implemented Modules**: Users, Tenants, Roles, Memberships, Patients (with full CRUD)
+**Missing Unit Tests**: No test files found in src/ - tests need to be implemented
+**Recent Additions**: Patients module with CreatePatientDto, UpdatePatientDto using PartialType from Swagger

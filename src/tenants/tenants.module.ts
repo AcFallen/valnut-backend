@@ -16,7 +16,15 @@ import { CoreModule } from '../core/core.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tenant, Role, UserRole, User, Membership, TenantMembership, PaymentHistory]),
+    TypeOrmModule.forFeature([
+      Tenant,
+      Role,
+      UserRole,
+      User,
+      Membership,
+      TenantMembership,
+      PaymentHistory,
+    ]),
     AuthModule,
     UsersModule,
     RolesModule,

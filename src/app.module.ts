@@ -11,6 +11,7 @@ import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { CoreModule } from './core/core.module';
 import { TenantMiddleware } from './core/middleware/tenant.middleware';
+import { AppointmentsModule } from './appointments/appointments.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -31,14 +32,13 @@ import databaseConfig from './config/database.config';
     MembershipsModule,
     RolesModule,
     PatientsModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes('*');
+    consumer.apply(TenantMiddleware).forRoutes('*');
   }
 }

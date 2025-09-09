@@ -42,7 +42,7 @@ export class CreateSystemAdminSeed {
 
     // Create system admin user
     const hashedPassword = await bcrypt.hash('admin123!', 12);
-    
+
     const adminUser = userRepository.create({
       username: 'system_admin',
       password: hashedPassword,

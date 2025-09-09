@@ -15,7 +15,8 @@ export class CreateDefaultMembershipsSeed {
     const memberships = [
       {
         name: 'Plan Básico',
-        description: 'Perfect for small practices starting with nutrition management',
+        description:
+          'Perfect for small practices starting with nutrition management',
         price: 29.99,
         durationMonths: 1,
         maxUsers: 2,

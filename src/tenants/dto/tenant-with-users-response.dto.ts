@@ -56,11 +56,13 @@ export class TenantUserResponseDto {
   @Expose()
   @Type(() => UserRoleResponseDto)
   @Transform(({ obj }) => {
-    return obj.userRoles?.map(userRole => ({
-      name: userRole.role?.name,
-      description: userRole.role?.description,
-      isTenantAdmin: userRole.role?.isTenantAdmin
-    })) || [];
+    return (
+      obj.userRoles?.map((userRole) => ({
+        name: userRole.role?.name,
+        description: userRole.role?.description,
+        isTenantAdmin: userRole.role?.isTenantAdmin,
+      })) || []
+    );
   })
   roles: UserRoleResponseDto[];
 }

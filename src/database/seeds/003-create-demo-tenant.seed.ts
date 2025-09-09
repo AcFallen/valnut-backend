@@ -18,7 +18,8 @@ export class CreateDemoTenantSeed {
     const roleRepository = dataSource.getRepository(Role);
     const userRoleRepository = dataSource.getRepository(UserRole);
     const membershipRepository = dataSource.getRepository(Membership);
-    const tenantMembershipRepository = dataSource.getRepository(TenantMembership);
+    const tenantMembershipRepository =
+      dataSource.getRepository(TenantMembership);
 
     // Check if demo tenant already exists
     const existingTenant = await tenantRepository.findOne({
@@ -72,7 +73,7 @@ export class CreateDemoTenantSeed {
 
     // Create tenant owner user
     const hashedPassword = await bcrypt.hash('demo123!', 12);
-    
+
     const ownerUser = userRepository.create({
       username: 'demo_owner',
       password: hashedPassword,
@@ -95,7 +96,9 @@ export class CreateDemoTenantSeed {
     await profileRepository.save(ownerProfile);
 
     // Assign Nutricionista role to owner
-    const nutricionistaRole = tenantRoles.find(role => role.name === 'Nutricionista');
+    const nutricionistaRole = tenantRoles.find(
+      (role) => role.name === 'Nutricionista',
+    );
     if (nutricionistaRole) {
       const ownerRole = userRoleRepository.create({
         userId: savedOwner.id,
@@ -127,7 +130,9 @@ export class CreateDemoTenantSeed {
     await profileRepository.save(receptionistProfile);
 
     // Assign Recepcionista role
-    const recepcionistaRole = tenantRoles.find(role => role.name === 'Recepcionista');
+    const recepcionistaRole = tenantRoles.find(
+      (role) => role.name === 'Recepcionista',
+    );
     if (recepcionistaRole) {
       const receptionistRole = userRoleRepository.create({
         userId: savedReceptionist.id,

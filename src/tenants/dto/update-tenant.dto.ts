@@ -5,19 +5,19 @@ import { CreateTenantDto } from './create-tenant.dto';
 import { TenantStatus } from '../../common/enums';
 
 export class UpdateTenantDto extends PartialType(CreateTenantDto) {
-  @ApiProperty({ 
-    description: 'Tenant status', 
+  @ApiProperty({
+    description: 'Tenant status',
     enum: TenantStatus,
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsEnum(TenantStatus)
   status?: TenantStatus;
 
-  @ApiProperty({ 
-    description: 'Tenant expiration date', 
+  @ApiProperty({
+    description: 'Tenant expiration date',
     example: '2024-12-31T23:59:59Z',
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsDateString()

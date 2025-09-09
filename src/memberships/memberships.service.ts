@@ -22,7 +22,9 @@ export class MembershipsService {
   ) {}
 
   // Memberships CRUD
-  async createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership> {
+  async createMembership(
+    createMembershipDto: CreateMembershipDto,
+  ): Promise<Membership> {
     const membership = this.membershipRepository.create(createMembershipDto);
     return await this.membershipRepository.save(membership);
   }
@@ -46,7 +48,10 @@ export class MembershipsService {
     return membership;
   }
 
-  async updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership> {
+  async updateMembership(
+    id: string,
+    updateMembershipDto: UpdateMembershipDto,
+  ): Promise<Membership> {
     const membership = await this.findMembership(id);
     Object.assign(membership, updateMembershipDto);
     return await this.membershipRepository.save(membership);
@@ -58,8 +63,12 @@ export class MembershipsService {
   }
 
   // Tenant Memberships CRUD
-  async createTenantMembership(createTenantMembershipDto: CreateTenantMembershipDto): Promise<TenantMembership> {
-    const tenantMembership = this.tenantMembershipRepository.create(createTenantMembershipDto);
+  async createTenantMembership(
+    createTenantMembershipDto: CreateTenantMembershipDto,
+  ): Promise<TenantMembership> {
+    const tenantMembership = this.tenantMembershipRepository.create(
+      createTenantMembershipDto,
+    );
     return await this.tenantMembershipRepository.save(tenantMembership);
   }
 
@@ -71,9 +80,11 @@ export class MembershipsService {
     });
   }
 
-  async findActiveTenantMembership(tenantId: string): Promise<TenantMembership | null> {
+  async findActiveTenantMembership(
+    tenantId: string,
+  ): Promise<TenantMembership | null> {
     return await this.tenantMembershipRepository.findOne({
-      where: { 
+      where: {
         tenantId,
         status: MembershipStatus.ACTIVE,
       },
@@ -95,7 +106,9 @@ export class MembershipsService {
   }
 
   // Payment History CRUD
-  async createPayment(createPaymentDto: CreatePaymentDto): Promise<PaymentHistory> {
+  async createPayment(
+    createPaymentDto: CreatePaymentDto,
+  ): Promise<PaymentHistory> {
     const payment = this.paymentHistoryRepository.create(createPaymentDto);
     return await this.paymentHistoryRepository.save(payment);
   }
@@ -133,11 +146,15 @@ export class MembershipsService {
   }
 
   async getMembershipStats(): Promise<any> {
-    const totalMemberships = await this.membershipRepository.count({ where: { isActive: true } });
-    const activeTenantMemberships = await this.tenantMembershipRepository.count({ 
-      where: { status: MembershipStatus.ACTIVE } 
+    const totalMemberships = await this.membershipRepository.count({
+      where: { isActive: true },
     });
-    
+    const activeTenantMemberships = await this.tenantMembershipRepository.count(
+      {
+        where: { status: MembershipStatus.ACTIVE },
+      },
+    );
+
     const revenueResult = await this.paymentHistoryRepository
       .createQueryBuilder('ph')
       .select('SUM(ph.amount)', 'totalRevenue')

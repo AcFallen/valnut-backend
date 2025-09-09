@@ -24,18 +24,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
         const responseObj = exceptionResponse as any;
         message = responseObj.message || responseObj.error || exception.message;
         details = responseObj.details || responseObj;
       } else {
-        message = exceptionResponse as string;
+        message = exceptionResponse;
       }
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = exception.message || 'Internal server error';
-      details = process.env.NODE_ENV === 'development' ? exception.stack : undefined;
+      details =
+        process.env.NODE_ENV === 'development' ? exception.stack : undefined;
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Unknown error occurred';
@@ -47,7 +48,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       exception instanceof Error ? exception.stack : exception,
     );
 
-    const errorResponse = ResponseUtil.error(message, status, undefined, details);
+    const errorResponse = ResponseUtil.error(
+      message,
+      status,
+      undefined,
+      details,
+    );
 
     response.status(status).json(errorResponse);
   }

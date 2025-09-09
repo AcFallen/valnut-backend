@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsNumber, IsPositive, IsInt, IsObject, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsPositive,
+  IsInt,
+  IsObject,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -8,10 +16,10 @@ export class CreateMembershipDto {
   @MaxLength(255)
   name: string;
 
-  @ApiProperty({ 
-    description: 'Membership description', 
+  @ApiProperty({
+    description: 'Membership description',
     example: 'Plan básico para consultorios pequeños',
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsString()
@@ -41,10 +49,10 @@ export class CreateMembershipDto {
   @IsPositive()
   maxPatients: number;
 
-  @ApiProperty({ 
-    description: 'Membership features (JSON object)', 
+  @ApiProperty({
+    description: 'Membership features (JSON object)',
     example: { reports: true, exportData: false },
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsObject()
