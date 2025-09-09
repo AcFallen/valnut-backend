@@ -35,7 +35,7 @@ export class Appointment {
   id: string;
 
   @Column({ type: 'date' })
-  appointmentDate: Date;
+  appointmentDate: string;
 
   @Column({ type: 'time' })
   appointmentTime: string;

@@ -70,6 +70,7 @@ pnpm run test:debug
 - `roles/`: RBAC system with tenant-scoped and system roles
 - `memberships/`: Subscription plans and payment tracking
 - `patients/`: Patient management with CRUD operations and tenant filtering
+- `appointments/`: Appointment scheduling with user and role entities integration
 
 ## Key Entities & Relationships
 
@@ -133,16 +134,57 @@ pnpm run test:debug
 
 **Test Environment**:
 - Jest with TypeScript support and coverage reporting
-- Separate e2e test configuration
+- Separate e2e test configuration in `test/jest-e2e.json`
 - Test environment uses `node` (not `jsdom`)
+- Test files should follow `.spec.ts` naming convention
+- Root test directory: `src/` (configured in jest.rootDir)
 
 **Database Seeding**:
 - Run `pnpm run seed` to populate initial data
 - Creates system admin, demo tenant, and sample users for development
 - Safe to run multiple times (idempotent operations)
+- Seeds are located in `src/database/seeds/`
 
 ## Current Development Status
 
-**Implemented Modules**: Users, Tenants, Roles, Memberships, Patients (with full CRUD)
+**Implemented Modules**: Users, Tenants, Roles, Memberships, Patients (with full CRUD), Appointments (with detailed appointment data retrieval)
 **Missing Unit Tests**: No test files found in src/ - tests need to be implemented
-**Recent Additions**: Patients module with CreatePatientDto, UpdatePatientDto using PartialType from Swagger
+**Recent Additions**: 
+- Appointments module with user and role entities integration
+- Enhanced appointment methods with detailed data retrieval
+- Patients module with CreatePatientDto, UpdatePatientDto using PartialType from Swagger
+- Select DTOs and endpoints for user and patient selection
+
+## Appointments Module Details
+
+**Key Features**:
+- Full CRUD operations with tenant filtering
+- Conflict detection for appointment slots
+- Detailed appointment data retrieval with user/patient relationships
+- Pagination and filtering support
+- Soft delete functionality
+
+**Security Configuration**:
+```typescript
+@UseGuards(JwtAuthGuard, PermissionsGuard, TenantGuard)
+@RequireTenant()  // Most endpoints require tenant context
+@RequirePermissions(PERMISSIONS.APPOINTMENT_*)  // Permission-based access
+```
+
+## Important File Locations
+
+**Configuration**:
+- Database config: `src/config/database.config.ts`
+- Main app entry: `src/main.ts` (includes Swagger setup at `/api-docs`)
+- Global filters/interceptors configured in main.ts
+
+**Security**:
+- Permissions constants: `src/common/constants/permissions.constant.ts`
+- JWT strategy: `src/auth/strategies/jwt.strategy.ts`
+- Tenant middleware: `src/core/middleware/tenant.middleware.ts`
+
+**Seeds**:
+- Index: `src/database/seeds/index.ts`
+- System admin: `src/database/seeds/001-create-system-admin.seed.ts`
+- Memberships: `src/database/seeds/002-create-default-memberships.seed.ts`
+- Demo tenant: `src/database/seeds/003-create-demo-tenant.seed.ts`

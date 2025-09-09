@@ -17,8 +17,10 @@ import {
 
 export class QueryAppointmentsDto {
   @ApiProperty({
-    description: 'Filter by appointment date',
+    description: 'Filter by appointment date (YYYY-MM-DD format)',
     example: '2024-01-15',
+    type: 'string',
+    format: 'date',
     required: false,
   })
   @IsOptional()
@@ -26,8 +28,10 @@ export class QueryAppointmentsDto {
   appointmentDate?: string;
 
   @ApiProperty({
-    description: 'Filter by date range - start date',
+    description: 'Filter by date range - start date (YYYY-MM-DD format)',
     example: '2024-01-15',
+    type: 'string',
+    format: 'date',
     required: false,
   })
   @IsOptional()
@@ -35,8 +39,10 @@ export class QueryAppointmentsDto {
   startDate?: string;
 
   @ApiProperty({
-    description: 'Filter by date range - end date',
+    description: 'Filter by date range - end date (YYYY-MM-DD format)',
     example: '2024-01-31',
+    type: 'string',
+    format: 'date',
     required: false,
   })
   @IsOptional()

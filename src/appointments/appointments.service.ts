@@ -28,7 +28,7 @@ export class AppointmentsService {
     // Check for scheduling conflicts
     const conflictingAppointment = await this.appointmentRepository.findOne({
       where: {
-        appointmentDate: new Date(createAppointmentDto.appointmentDate),
+        appointmentDate: createAppointmentDto.appointmentDate,
         appointmentTime: createAppointmentDto.appointmentTime,
         nutritionistId: createAppointmentDto.nutritionistId,
         tenantId,
@@ -44,7 +44,6 @@ export class AppointmentsService {
 
     const appointmentData = {
       ...createAppointmentDto,
-      appointmentDate: new Date(createAppointmentDto.appointmentDate),
       tenantId,
     };
 
@@ -148,7 +147,7 @@ export class AppointmentsService {
 
     if (appointmentDate) {
       queryBuilder.andWhere('appointment.appointmentDate = :appointmentDate', {
-        appointmentDate: new Date(appointmentDate),
+        appointmentDate,
       });
     }
 
@@ -156,8 +155,8 @@ export class AppointmentsService {
       queryBuilder.andWhere(
         'appointment.appointmentDate BETWEEN :startDate AND :endDate',
         {
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate,
+          endDate,
         },
       );
     }
@@ -231,9 +230,7 @@ export class AppointmentsService {
     ) {
       const conflictingAppointment = await this.appointmentRepository.findOne({
         where: {
-          appointmentDate: updateAppointmentDto.appointmentDate
-            ? new Date(updateAppointmentDto.appointmentDate)
-            : appointment.appointmentDate,
+          appointmentDate: updateAppointmentDto.appointmentDate ?? appointment.appointmentDate,
           appointmentTime:
             updateAppointmentDto.appointmentTime ?? appointment.appointmentTime,
           nutritionistId:
@@ -252,9 +249,6 @@ export class AppointmentsService {
 
     const appointmentData = {
       ...updateAppointmentDto,
-      appointmentDate: updateAppointmentDto.appointmentDate
-        ? new Date(updateAppointmentDto.appointmentDate)
-        : appointment.appointmentDate,
     };
 
     await this.appointmentRepository.update(appointment.id, appointmentData);
