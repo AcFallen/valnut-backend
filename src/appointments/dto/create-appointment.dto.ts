@@ -8,7 +8,7 @@ import {
   IsInt,
   Min,
   Max,
-  IsTimeString,
+  Matches,
 } from 'class-validator';
 import {
   ConsultationType,
@@ -31,7 +31,9 @@ export class CreateAppointmentDto {
     type: 'string',
     format: 'time',
   })
-  @IsTimeString()
+  @Matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'appointmentTime must be in HH:MM format (24-hour)',
+  })
   appointmentTime: string;
 
   @ApiProperty({
