@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Like, SelectQueryBuilder } from 'typeorm';
 import { Patient } from './entities/patient.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
+import { UpdatePatientDto } from './dto/update-patient.dto';
 import { QueryPatientsDto } from './dto/query-patients.dto';
 import { PaginatedPatientsDto } from './dto/paginated-patients.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
@@ -126,6 +127,20 @@ export class PatientsService {
       hasNext,
       hasPrev,
     };
+  }
+
+  async update(id: string, updatePatientDto: UpdatePatientDto): Promise<Patient> {
+    const patient = await this.findById(id);
+    
+    const patientData = {
+      ...updatePatientDto,
+      dateOfBirth: updatePatientDto.dateOfBirth
+        ? new Date(updatePatientDto.dateOfBirth)
+        : patient.dateOfBirth,
+    };
+
+    await this.patientRepository.update(patient.id, patientData);
+    return this.findById(id);
   }
 
   async softDelete(id: string): Promise<void> {
