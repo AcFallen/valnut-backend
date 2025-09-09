@@ -23,6 +23,7 @@ import { QueryAppointmentsDto } from './dto/query-appointments.dto';
 import { PaginatedAppointmentsDto } from './dto/paginated-appointments.dto';
 import { QueryCalendarDto } from './dto/query-calendar.dto';
 import { CalendarResponseDto } from './dto/calendar-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../core/guards/permissions.guard';
 import { RequirePermissions } from '../core/decorators/require-permissions.decorator';
@@ -126,6 +127,26 @@ export class AppointmentsController {
     @Body() updateAppointmentDto: UpdateAppointmentDto,
   ): Promise<Appointment> {
     return this.appointmentsService.update(id, updateAppointmentDto);
+  }
+
+  @Patch(':id/reschedule')
+  @RequirePermissions(PERMISSIONS.APPOINTMENT_UPDATE)
+  @ApiOperation({ 
+    summary: 'Reschedule an appointment',
+    description: 'Move an appointment to a new date and time. The status will be automatically updated to RESCHEDULED.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Appointment rescheduled successfully',
+    type: Appointment,
+  })
+  @ApiResponse({ status: 404, description: 'Appointment not found' })
+  @ApiResponse({ status: 409, description: 'Appointment slot conflict at new date/time' })
+  async reschedule(
+    @Param('id') id: string,
+    @Body() rescheduleDto: RescheduleAppointmentDto,
+  ): Promise<Appointment> {
+    return this.appointmentsService.reschedule(id, rescheduleDto);
   }
 
   @Delete(':id')

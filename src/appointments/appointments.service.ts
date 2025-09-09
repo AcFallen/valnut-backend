@@ -12,7 +12,9 @@ import { QueryAppointmentsDto } from './dto/query-appointments.dto';
 import { PaginatedAppointmentsDto } from './dto/paginated-appointments.dto';
 import { QueryCalendarDto } from './dto/query-calendar.dto';
 import { CalendarAppointmentDto } from './dto/calendar-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { TenantContextService } from '../core/services/tenant-context.service';
+import { AppointmentStatus } from './entities/appointment.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -339,6 +341,40 @@ export class AppointmentsService {
           }
         : null,
     }));
+  }
+
+  async reschedule(
+    id: string,
+    rescheduleDto: RescheduleAppointmentDto,
+  ): Promise<Appointment> {
+    const appointment = await this.findById(id);
+
+    // Check for scheduling conflicts with the new date and time
+    const conflictingAppointment = await this.appointmentRepository.findOne({
+      where: {
+        appointmentDate: rescheduleDto.newAppointmentDate,
+        appointmentTime: rescheduleDto.newAppointmentTime,
+        nutritionistId: appointment.nutritionistId,
+        tenantId: appointment.tenantId,
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (conflictingAppointment && conflictingAppointment.id !== id) {
+      throw new ConflictException(
+        'Appointment slot is already booked for this nutritionist at the new date and time',
+      );
+    }
+
+    // Update appointment with new date, time, and status
+    const rescheduleData = {
+      appointmentDate: rescheduleDto.newAppointmentDate,
+      appointmentTime: rescheduleDto.newAppointmentTime,
+      status: AppointmentStatus.RESCHEDULED,
+    };
+
+    await this.appointmentRepository.update(appointment.id, rescheduleData);
+    return this.findById(id);
   }
 
   async softDelete(id: string): Promise<void> {

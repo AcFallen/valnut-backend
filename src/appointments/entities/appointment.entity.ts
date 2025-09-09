@@ -27,6 +27,7 @@ export enum AppointmentStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
   NO_SHOW = 'no_show',
+  RESCHEDULED = 'rescheduled',
 }
 
 @Entity('appointments')
