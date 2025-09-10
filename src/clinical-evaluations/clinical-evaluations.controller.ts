@@ -12,23 +12,4 @@ export class ClinicalEvaluationsController {
     return this.clinicalEvaluationsService.create(createClinicalEvaluationDto);
   }
 
-  @Get()
-  findAll() {
-    return this.clinicalEvaluationsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.clinicalEvaluationsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClinicalEvaluationDto: UpdateClinicalEvaluationDto) {
-    return this.clinicalEvaluationsService.update(+id, updateClinicalEvaluationDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clinicalEvaluationsService.remove(+id);
-  }
 }

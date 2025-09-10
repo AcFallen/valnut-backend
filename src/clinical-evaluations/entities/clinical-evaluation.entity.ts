@@ -76,7 +76,7 @@ export class ClinicalEvaluation {
   calculatedData: Record<string, any>;
 
   // Control de fechas
-  @Column({ name: 'evaluation_date', type: 'date' })
+  @Column({ name: 'evaluation_date', type: 'date' , default: () => 'CURRENT_DATE' })
   @Index()
   evaluationDate: Date;
 
