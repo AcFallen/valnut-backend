@@ -7,9 +7,11 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { DocumentType } from '../../common/enums';
+import { ClinicalEvaluation } from 'src/clinical-evaluations/entities/clinical-evaluation.entity';
 
 @Entity('patients')
 export class Patient {
@@ -80,4 +82,8 @@ export class Patient {
   @ManyToOne(() => Tenant, (tenant) => tenant.users)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
+
+  // Relación con evaluaciones clínicas
+  @OneToMany(() => ClinicalEvaluation, (evaluation) => evaluation.patient)
+  evaluations: ClinicalEvaluation[];
 }
