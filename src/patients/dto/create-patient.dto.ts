@@ -7,7 +7,9 @@ import {
   MaxLength,
   MinLength,
   IsIn,
+  IsEnum,
 } from 'class-validator';
+import { DocumentType } from '../../common/enums';
 
 export class CreatePatientDto {
   @ApiProperty({
@@ -47,6 +49,27 @@ export class CreatePatientDto {
   @IsString()
   @MaxLength(20)
   phone?: string;
+
+  @ApiProperty({
+    description: 'Patient document type',
+    example: 'dni',
+    enum: DocumentType,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(DocumentType)
+  documentType?: DocumentType;
+
+  @ApiProperty({
+    description: 'Patient document number',
+    example: '12345678',
+    maxLength: 20,
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  documentNumber?: string;
 
   @ApiProperty({
     description: 'Patient date of birth',

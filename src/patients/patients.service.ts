@@ -21,6 +21,12 @@ export class PatientsService {
     private tenantContextService: TenantContextService,
   ) {}
 
+  private parseDateString(dateString: string): Date {
+    // Parsear fecha en formato YYYY-MM-DD sin problemas de zona horaria
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month - 1 porque Date usa índice 0-11 para meses
+  }
+
   async create(createPatientDto: CreatePatientDto): Promise<Patient> {
     const tenantId = this.tenantContextService.getTenantId();
 
@@ -37,11 +43,26 @@ export class PatientsService {
       throw new ConflictException('Email already exists in this tenant');
     }
 
+    // Verificar número de documento único dentro del tenant (si se proporciona)
+    if (createPatientDto.documentNumber) {
+      const existingDocumentPatient = await this.patientRepository.findOne({
+        where: {
+          documentNumber: createPatientDto.documentNumber,
+          tenantId,
+          deletedAt: IsNull(),
+        },
+      });
+
+      if (existingDocumentPatient) {
+        throw new ConflictException('Document number already exists in this tenant');
+      }
+    }
+
     // Convertir dateOfBirth string a Date si está presente
     const patientData = {
       ...createPatientDto,
       dateOfBirth: createPatientDto.dateOfBirth
-        ? new Date(createPatientDto.dateOfBirth)
+        ? this.parseDateString(createPatientDto.dateOfBirth)
         : undefined,
       tenantId,
     };
@@ -85,6 +106,8 @@ export class PatientsService {
         'patient.lastName',
         'patient.email',
         'patient.phone',
+        'patient.documentType',
+        'patient.documentNumber',
         'patient.createdAt',
       ])
       .where('patient.tenantId = :tenantId', { tenantId })
@@ -92,7 +115,7 @@ export class PatientsService {
 
     if (search) {
       queryBuilder.andWhere(
-        '(patient.firstName ILIKE :search OR patient.lastName ILIKE :search OR patient.phone ILIKE :search)',
+        '(patient.firstName ILIKE :search OR patient.lastName ILIKE :search OR patient.phone ILIKE :search OR patient.documentNumber ILIKE :search)',
         { search: `%${search}%` },
       );
     } else {
@@ -146,7 +169,7 @@ export class PatientsService {
     const patientData = {
       ...updatePatientDto,
       dateOfBirth: updatePatientDto.dateOfBirth
-        ? new Date(updatePatientDto.dateOfBirth)
+        ? this.parseDateString(updatePatientDto.dateOfBirth)
         : patient.dateOfBirth,
     };
 

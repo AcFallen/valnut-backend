@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { DocumentType } from '../../common/enums';
 
 @Entity('patients')
 export class Patient {
@@ -26,6 +27,16 @@ export class Patient {
 
   @Column({ length: 20, nullable: true })
   phone?: string;
+
+  @Column({
+    type: 'enum',
+    enum: DocumentType,
+    nullable: true,
+  })
+  documentType?: DocumentType;
+
+  @Column({ length: 20, nullable: true })
+  documentNumber?: string;
 
   @Column({ type: 'date', nullable: true })
   dateOfBirth?: Date;
