@@ -42,7 +42,7 @@ export class AppointmentsService {
 
     if (conflictingAppointment) {
       throw new ConflictException(
-        'Appointment slot is already booked for this nutritionist',
+        'La cita ya está reservada para este nutricionista.',
       );
     }
 
@@ -234,7 +234,8 @@ export class AppointmentsService {
     ) {
       const conflictingAppointment = await this.appointmentRepository.findOne({
         where: {
-          appointmentDate: updateAppointmentDto.appointmentDate ?? appointment.appointmentDate,
+          appointmentDate:
+            updateAppointmentDto.appointmentDate ?? appointment.appointmentDate,
           appointmentTime:
             updateAppointmentDto.appointmentTime ?? appointment.appointmentTime,
           nutritionistId:
@@ -246,7 +247,7 @@ export class AppointmentsService {
 
       if (conflictingAppointment && conflictingAppointment.id !== id) {
         throw new ConflictException(
-          'Appointment slot is already booked for this nutritionist',
+          'La cita ya está reservada para este nutricionista.',
         );
       }
     }
@@ -259,7 +260,9 @@ export class AppointmentsService {
     return this.findById(id);
   }
 
-  async findForCalendar(query?: QueryCalendarDto): Promise<CalendarAppointmentDto[]> {
+  async findForCalendar(
+    query?: QueryCalendarDto,
+  ): Promise<CalendarAppointmentDto[]> {
     const tenantId = this.tenantContextService.getTenantId();
     const { start, end, nutritionistId, patientId } = query || {};
 
@@ -362,7 +365,7 @@ export class AppointmentsService {
 
     if (conflictingAppointment && conflictingAppointment.id !== id) {
       throw new ConflictException(
-        'Appointment slot is already booked for this nutritionist at the new date and time',
+        'La cita ya está reservada para este nutricionista en la nueva fecha y hora',
       );
     }
 
