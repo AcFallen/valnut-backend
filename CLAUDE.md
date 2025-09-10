@@ -150,9 +150,9 @@ pnpm run test:debug
 **Implemented Modules**: Users, Tenants, Roles, Memberships, Patients (with full CRUD), Appointments (with detailed appointment data retrieval)
 **Missing Unit Tests**: No test files found in src/ - tests need to be implemented
 **Recent Additions**: 
-- Appointments module with user and role entities integration
-- Enhanced appointment methods with detailed data retrieval
-- Patients module with CreatePatientDto, UpdatePatientDto using PartialType from Swagger
+- Appointments module with full CRUD, reschedule functionality, calendar view, and conflict detection
+- Patients module with document type and number support (CreatePatientDto, UpdatePatientDto)
+- Enhanced appointment methods with detailed data retrieval and Spanish error messages
 - Select DTOs and endpoints for user and patient selection
 
 ## Appointments Module Details

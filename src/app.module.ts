@@ -12,6 +12,7 @@ import { PatientsModule } from './patients/patients.module';
 import { CoreModule } from './core/core.module';
 import { TenantMiddleware } from './core/middleware/tenant.middleware';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { ClinicalEvaluationsModule } from './clinical-evaluations/clinical-evaluations.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -33,6 +34,7 @@ import databaseConfig from './config/database.config';
     RolesModule,
     PatientsModule,
     AppointmentsModule,
+    ClinicalEvaluationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
