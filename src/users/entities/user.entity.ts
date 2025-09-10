@@ -15,6 +15,7 @@ import { Profile } from './profile.entity';
 import { UserType } from '../../common/enums';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { UserRole } from '../../roles/entities/user-role.entity';
+import { ClinicalEvaluation } from 'src/clinical-evaluations/entities/clinical-evaluation.entity';
 
 @Entity('users')
 export class User {
@@ -66,4 +67,7 @@ export class User {
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles: UserRole[];
+
+  @OneToMany(() => ClinicalEvaluation, (evaluation) => evaluation.nutritionist)
+  clinicalEvaluations: ClinicalEvaluation[];
 }

@@ -11,6 +11,7 @@ import { TenantStatus } from '../../common/enums';
 import { User } from '../../users/entities/user.entity';
 import { TenantMembership } from '../../memberships/entities/tenant-membership.entity';
 import { Patient } from 'src/patients/entities/patient.entity';
+import { ClinicalEvaluation } from 'src/clinical-evaluations/entities/clinical-evaluation.entity';
 
 @Entity('tenants')
 export class Tenant {
@@ -68,4 +69,7 @@ export class Tenant {
 
   @OneToMany(() => Patient, (patient) => patient.tenant)
   patients: Patient[];
+
+  @OneToMany(() => ClinicalEvaluation, (evaluation) => evaluation.tenant)
+  clinicalEvaluations: ClinicalEvaluation[];
 }

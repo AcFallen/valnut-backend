@@ -10,7 +10,8 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-
+import { User } from 'src/users/entities/user.entity';
+import { Tenant } from 'src/tenants/entities/tenant.entity';
 
 @Entity('clinical_evaluations')
 @Index(['tenantId', 'patientId', 'evaluationDate'])
@@ -21,16 +22,16 @@ export class ClinicalEvaluation {
   id: number;
 
   // Seguridad multitenant
-  @Column({ name: 'tenant_id', type: 'string' })
+  @Column({ name: 'tenant_id' })
   @Index()
   tenantId: string;
 
   // Referencias
-  @Column({ name: 'patient_id', type: 'string' })
+  @Column({ name: 'patient_id' })
   @Index()
   patientId: string;
 
-  @Column({ name: 'nutritionist_id', type: 'string' })
+  @Column({ name: 'nutritionist_id' })
   nutritionistId: string;
 
   // Metadatos del formulario
@@ -58,7 +59,7 @@ export class ClinicalEvaluation {
     scale: 2,
     nullable: true,
   })
-  bmi: number; // Índice de Masa Corporal calculado
+  bmi?: number; // Índice de Masa Corporal calculado
 
   @Column({
     name: 'nutritional_status',
@@ -76,7 +77,11 @@ export class ClinicalEvaluation {
   calculatedData: Record<string, any>;
 
   // Control de fechas
-  @Column({ name: 'evaluation_date', type: 'date' , default: () => 'CURRENT_DATE' })
+  @Column({
+    name: 'evaluation_date',
+    type: 'date',
+    default: () => 'CURRENT_DATE',
+  })
   @Index()
   evaluationDate: Date;
 
@@ -105,9 +110,20 @@ export class ClinicalEvaluation {
   @JoinColumn({ name: 'patient_id' })
   patient: Patient;
 
+  // Relación con nutricionista
+  @ManyToOne(() => User, (user) => user.clinicalEvaluations)
+  @JoinColumn({ name: 'nutritionist_id' })
+  nutritionist: User;
+
+  // Relacion con tenant
+
+  @ManyToOne(() => Tenant, (tenant) => tenant.clinicalEvaluations)
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
+
   // Método helper para calcular BMI
-  calculateBMI(): number | null {
-    if (!this.weightKg || !this.heightCm) return null;
+  calculateBMI(): number | undefined {
+    if (!this.weightKg || !this.heightCm) return undefined;
     const heightInMeters = this.heightCm / 100;
     return Number(
       (this.weightKg / (heightInMeters * heightInMeters)).toFixed(2),
@@ -115,8 +131,8 @@ export class ClinicalEvaluation {
   }
 
   // Método helper para determinar estado nutricional
-  getNutritionalStatus(): NutritionalStatus | null {
-    if (!this.bmi) return null;
+  getNutritionalStatus(): NutritionalStatus {
+    if (!this.bmi) return NutritionalStatus.NORMAL;
 
     // Para embarazadas usar criterios específicos
     if (this.formType === FormType.PREGNANT) {

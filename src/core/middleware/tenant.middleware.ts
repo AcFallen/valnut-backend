@@ -28,6 +28,14 @@ export class TenantMiddleware implements NestMiddleware {
           const payload = this.jwtService.verify(token);
           req.user = payload;
 
+          // Establecemos el usuario en el contexto
+          this.tenantContextService.setUser({
+            id: payload.sub,
+            username: payload.username,
+            tenantId: payload.tenantId,
+            userType: payload.userType,
+          });
+
           // Si el usuario tiene tenantId, lo establecemos en el contexto
           if (payload.tenantId) {
             this.tenantContextService.setTenantId(payload.tenantId);

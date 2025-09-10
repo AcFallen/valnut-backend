@@ -16,6 +16,12 @@ export const PERMISSIONS = {
   MEDICAL_HISTORY_READ: 'medical_history:read',
   MEDICAL_HISTORY_UPDATE: 'medical_history:update',
 
+  // Evaluaciones clínicas
+  CLINICAL_EVALUATION_CREATE: 'clinical_evaluation:create',
+  CLINICAL_EVALUATION_READ: 'clinical_evaluation:read',
+  CLINICAL_EVALUATION_UPDATE: 'clinical_evaluation:update',
+  CLINICAL_EVALUATION_DELETE: 'clinical_evaluation:delete',
+
   // Turnos y citas
   APPOINTMENT_CREATE: 'appointment:create',
   APPOINTMENT_READ: 'appointment:read',
